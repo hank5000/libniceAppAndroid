@@ -36,6 +36,9 @@ import com.via.libnice;
 public class MainActivity extends Activity {
 	libnice nice = new libnice();
 	libnice nice2= new libnice();
+	String STUN_IP 	= "74.125.204.127";
+	int    STUN_PORT= 19302;
+
 	Handler handler = new Handler();
 	Button initBtn = null;
 	Button getBtn  = null;
@@ -51,8 +54,6 @@ public class MainActivity extends Activity {
 	SurfaceView videoSurfaceView4 = null;
 	int MESSAGE_CHANNEL = 5;
 
-	int stream_id = 0;
-	
 	boolean bSourceSide = false;
 	Handler handle = new Handler();
 	String remoteSdp = "";
@@ -100,92 +101,75 @@ public class MainActivity extends Activity {
 		}
 	};
 
-
-//	public static Bitmap encodeToQrCode(String text, int width, int height){
-//	    QRCodeWriter writer = new QRCodeWriter();
-//	    BitMatrix matrix = null;
-//	    try {
-//	        matrix = writer.encode(text, BarcodeFormat.QR_CODE, width, height);
-//	    } catch (WriterException ex) {
-//	        ex.printStackTrace();
-//	    }
-//	    Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-//	    for (int x = 0; x < width; x++){
-//	        for (int y = 0; y < height; y++){
-//	            bmp.setPixel(x, y, matrix.get(x,y) ? Color.BLACK : Color.WHITE);
-//	        }
-//	    }
-//	    return bmp;
-//	}
 	
-	String initNice(libnice nice) {
-		nice.init();
+	boolean initNice(libnice nice) {
+		/*
+			0 => Fail
+			1 => Success
+		 */
+		if(nice.init()==0) {
+			return false;
+		}
+		/*
+			If useReliable = 1, the libnice will send the few small packages which is separated by user giving package
+						   = 0, the libnice will send the original package.
+		 */
 		int useReliable = 1;
 		nice.createAgent(useReliable);
 		nice.setStunAddress(STUN_IP, STUN_PORT);
-		int controllMode = 0;// 0 => controlling, 1=>controlled
+		/*
+			0 => controlling
+			1 => controlled
+		 */
+		int controllMode = 0;
 		nice.setControllingMode(controllMode);
-		String streamName = "HankWu";
+		String streamName = "P2PStream";
 		int numberOfComponent = 4;
 		// TODO: return stream id
-		stream_id = nice.addStream(streamName,numberOfComponent);
+		/*
+			ret = 0 => Fail.
+				= 1 => Success.
+				= 2 => It has been added.
+		 */
+		if(nice.addStream(streamName,numberOfComponent)!=1) {
+			return false;
+		}
+
 		// register a receive Observer to get byte array from jni side to java side.
 		int forComponentIndex = 1;
-		nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView), stream_id,forComponentIndex);
+		nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView),forComponentIndex);
 		forComponentIndex = 2;
-		nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView2), stream_id,forComponentIndex);
+		nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView2),forComponentIndex);
 		forComponentIndex = 3;
-		nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView3), stream_id,forComponentIndex);
+		nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView3),forComponentIndex);
 		forComponentIndex = 4;
-		nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView4), stream_id,forComponentIndex);
+		nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView4),forComponentIndex);
 
 		forComponentIndex = 5;
-		CommunicationPart cp = new CommunicationPart(instance, nice,stream_id,forComponentIndex);
-		nice.registerReceiveCallback(cp, stream_id, forComponentIndex);
+		CommunicationPart cp = new CommunicationPart(instance, nice,forComponentIndex);
+		nice.registerReceiveCallback(cp, forComponentIndex);
 		
 		// register a state Observer to catch stream/component state change
-		nice.registerStateObserver(new StateObserver());
+		nice.registerStateObserver(new NiceStateObserver(nice));
 		// TODO: add stream id, each stream has self SDP. 
-		sdp = nice.getLocalSdp(stream_id);
-		
-		return sdp;
+		if(nice.gatheringCandidate()==1) {
+			showToast("gathering Candidate Success, please wait gathering done then getLocalSDP");
+		} else {
+			showToast("gathering Candidate fail");
+			return false;
+		}
+
+		return true;
 	}
 	
 	
 	OnClickListener initListener = new OnClickListener(){
 
 		public void onClick(View v) {
-			String sdp1 = initNice(nice);
-			String sdp2 = initNice(nice2);
 
-//			nice.init();
-//			int useReliable = 1;
-//			nice.createAgent(useReliable);
-//			nice.setStunAddress(STUN_IP, STUN_PORT);
-//			int controllMode = 0;// 0 => controlling, 1=>controlled
-//			nice.setControllingMode(controllMode);
-//			String streamName = "HankWu";
-//			int numberOfComponent = 4;
-//			// TODO: return stream id
-//			stream_id = nice.addStream(streamName,numberOfComponent);
-//			// register a receive Observer to get byte array from jni side to java side.
-//			int forComponentIndex = 1;
-//			nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView), stream_id,forComponentIndex);
-//			forComponentIndex = 2;
-//			nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView2), stream_id,forComponentIndex);
-//			forComponentIndex = 3;
-//			nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView3), stream_id,forComponentIndex);
-//			forComponentIndex = 4;
-//			nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView4), stream_id,forComponentIndex);
-//
-//			forComponentIndex = 5;
-//			CommunicationPart cp = new CommunicationPart(instance, nice,stream_id,forComponentIndex);
-//			nice.registerReceiveCallback(cp, stream_id, forComponentIndex);
-//			
-//			// register a state Observer to catch stream/component state change
-//			nice.registerStateObserver(new StateObserver());
-//			// TODO: add stream id, each stream has self SDP. 
-//			sdp = nice.getLocalSdp(stream_id);
+			if (initNice(nice) && initNice(nice2)) {
+				showToast("nice,nice2 create success");
+			}
 
 			Thread a = new Thread(new Runnable() {
 				public void run() {
@@ -206,38 +190,12 @@ public class MainActivity extends Activity {
 				}
 			});
 			a.start();
-			
-			
-			// get sdp qrcode bitmap and show on surfaceView
-//			instance.runOnUiThread(new Runnable() {
-//				
-//				public void run() {
-//					Bitmap bmp = encodeToQrCode(sdp,600,600);
-//					qrSfView.setBackground(new BitmapDrawable(getResources(),bmp));
-//				}
-//			});
 		}
 	};
 	
 	OnClickListener getListener = new OnClickListener(){
 		
 		public void onClick(View v) {
-//
-//					Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-//					if(getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY).size()==0)
-//					{
-//						LOGD("please install ZXing QRCode");
-//					}
-//					else
-//					{
-//							// SCAN_MODE, 可判別所有支援的條碼
-//							// QR_CODE_MODE, 只判別 QRCode
-//							// PRODUCT_MODE, UPC and EAN 碼
-//							// ONE_D_MODE, 1 維條碼
-//							intent.putExtra("QR_CODE_MODE", "QR_CODE_MODE");
-//							// 呼叫ZXing Scanner，完成動作後回傳 1 給 onActivityResult 的 requestCode 參數
-//							startActivityForResult(intent, 1);
-//					}
 			if(bSourceSide) {
 				(new Thread(serverTask)).start();
 			} else {
@@ -268,11 +226,9 @@ public class MainActivity extends Activity {
 			    }
 			    });
 			   editDialog.show();
-			
 		}
 	};
 
-    //ByteBuffer naluBuffer = ByteBuffer.allocate(1024 * 1024);
     ByteBuffer naluBuffer = ByteBuffer.allocateDirect(1024*1024);
 	
 	int DEFAULT_DIVIDED_SIZE = 1024*1024;
@@ -291,7 +247,7 @@ public class MainActivity extends Activity {
 			    // do something when the button is clicked
 			    public void onClick(DialogInterface arg0, int arg1) {
 			    	String sendmsg = editText.getText().toString();
-					nice.sendMsg(sendmsg,stream_id,1);
+					nice.sendMsg(sendmsg,1);
 					AddTextToChat("Me:"+sendmsg);
 			    }
 			    });
@@ -331,11 +287,11 @@ public class MainActivity extends Activity {
 										naluBuffer.limit(divideSize+sentSize);
 										// Reliable mode : if send buffer size bigger than MTU, the destination side will received data partition which is divided by 1284.
 										// Normal mode   : if send buffer size bigger than MTU, the destination side will received all data in once receive.
-										nice.sendDataDirect(naluBuffer.slice(),divideSize,stream_id,1);
-										nice.sendDataDirect(naluBuffer.slice(),divideSize,stream_id,2);
+										nice.sendDataDirect(naluBuffer.slice(),divideSize,1);
+										nice.sendDataDirect(naluBuffer.slice(),divideSize,2);
 
-										nice.sendDataDirect(naluBuffer.slice(),divideSize,stream_id,3);
-										nice.sendDataDirect(naluBuffer.slice(),divideSize,stream_id,4);
+										nice.sendDataDirect(naluBuffer.slice(),divideSize,3);
+										nice.sendDataDirect(naluBuffer.slice(),divideSize,4);
 
 										
 										naluBuffer.limit(naluBuffer.capacity());
@@ -421,8 +377,7 @@ public class MainActivity extends Activity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-	String STUN_IP 	= "74.125.204.127";
-	int    STUN_PORT= 19302;
+
 
 	private void LOGD(String msg) {
 		Log.d("Libnice-java",msg);
@@ -436,7 +391,6 @@ public class MainActivity extends Activity {
 		int id = item.getItemId();
 		if (id == R.id.action_settings) {
 			nice.init();
-			//sdp = nice.jcreateNiceAgentAndGetSdp(STUN_IP, STUN_PORT);
 
 			return true;
 		}
@@ -451,33 +405,27 @@ public class MainActivity extends Activity {
 				//tv.setText(contents);
 				//remoteSdp = contents;
 			}
-			
-			
-			
 		}
 	}
 
-	
-	public class StateObserver implements libnice.StateObserver {
-			
-			public void cbComponentStateChanged(final int stream_id, final int component_id,
-					final int state) {
-				Log.d("cbComponentStateChanged","Stream["+stream_id+"]["+component_id+"]:"+libnice.StateObserver.STATE_TABLE[state]);
-				
-				instance.runOnUiThread(new Runnable(){
-					
-					public void run() {
-						Toast.makeText(instance, "comp id:"+component_id+" is "+libnice.StateObserver.STATE_TABLE[state], Toast.LENGTH_LONG).show();
-					}
-				});
+	public class NiceStateObserver implements libnice.StateObserver {
+			private libnice mNice;
+			public NiceStateObserver(libnice nice) {
+				mNice = nice;
 			}
-			
-			
+			public void cbComponentStateChanged(final int stream_id, final int component_id,
+												final int state) {
+				Log.d("cbComponentStateChanged","Stream["+stream_id+"]["+component_id+"]:"+libnice.StateObserver.STATE_TABLE[state]);
+			}
 			public void cbCandidateGatheringDone(int stream_id) {
-				// TODO Auto-generated method stub
-				Log.d("cbCandidateGatheringDone","Candidate Gathering Done Stream "+stream_id);
+				/*
+					if candidate gathering done, then it will getLocalSDP automatically.
+				 */
+				String sdp = mNice.getLocalSdp();
+				showToast("get sdp : "+sdp);
 			}
 	}
+
 	MediaPlayer mMediaPlayer;
 	
 	MediaExtractor me = new MediaExtractor();
@@ -518,10 +466,10 @@ public class MainActivity extends Activity {
 			        
 			        videoMsg = videoMsg + ":" + mime + ":" + w + ":" + h + ":" + s_sps + ":" + s_pps + ":";
 			        
-			        nice.sendMsg(videoMsg, stream_id,1);
-					nice.sendMsg(videoMsg, stream_id, 2);
-			        nice.sendMsg(videoMsg, stream_id,3);
-					nice.sendMsg(videoMsg, stream_id, 4);
+			        nice.sendMsg(videoMsg, 1);
+					nice.sendMsg(videoMsg, 2);
+			        nice.sendMsg(videoMsg, 3);
+					nice.sendMsg(videoMsg, 4);
 					break;
 				}
 			}
