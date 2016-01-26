@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="/Users/HankWu/Documents/adt-bundle-mac-x86_64-20140702/sdk/extras/android/m2repository/com/android/support/support-v4/19.1.0/support-v4-19.1.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="85f201b380937e61a9dce6ca90ccf6872abbfb67">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/build/intermediates/pre-dexed/debug/support-v4-19.1.0-a5ad144564daf1d9b491c2e69d673a1bec2a6079.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/libs/core-3.2.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="e019d15a13a9786f881141d2df6654b8510bce8b">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/build/intermediates/pre-dexed/debug/core-3.2.0-1cf82290460a8b37f0aad7fce2eec4247d3837a3.jar" />
+    </item>
+
+</items>
