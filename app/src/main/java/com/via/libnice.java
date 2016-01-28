@@ -10,21 +10,21 @@ public class libnice {
 		System.loadLibrary("gstreamer_android");
 		System.loadLibrary("nice4android");
 	}
-	
-	final static int MAX_STREAM = 20;
-	final static int MAX_COMPONENT = 20;
-	
-	String[] mStreamName = new String[MAX_STREAM];
-	String[][] mComponentName = new String[MAX_STREAM][MAX_COMPONENT];
-
+	/*
+		get agentCtx and gloop handle
+	 */
 	private long agentCtxHandle = 0;
+	private long gloopLong = 0;
+	/*
+		it will get one stream id at one class
+	 */
+	private int  streamId = -1;
+	private String localSdp = "";
 	/*
 		One NiceAgent will get one stream id currently
 		because i don't now what scenario will use a lot stream
 	 */
-	private int  streamId = -1;
 	Semaphore mutex = new Semaphore(1);
-
 
 	private native long initNative();
 	private native long /*agent handle*/ createAgentNative(long gloop,int useReliable);
@@ -46,6 +46,7 @@ public class libnice {
 	private native int restartStreamNative(long agentHandle,int streamId);
 	
 	public int restartStream() {
+		localSdp = "";
 		return restartStreamNative(agentCtxHandle, streamId);
 	}
 
@@ -63,7 +64,6 @@ public class libnice {
 	private native void registerReceiveCallbackNative(long agentHandle,libnice.ReceiveCallback recv_cb_obj,int streamId,int compId);
 	private native void registerStateObserverNative(long agentHandle,libnice.StateObserver obs);
 	
-	private static long gloopLong = 0;
 	Thread mainLoopThread = new Thread(new Runnable(){
 		public void run() {
 			// Just use it to run gloop
@@ -110,7 +110,8 @@ public class libnice {
 	}
 
 	public String getLocalSdp() {
-		return getLocalSdpNative(agentCtxHandle, streamId);
+		localSdp = getLocalSdpNative(agentCtxHandle, streamId);
+		return localSdp;
 	}
 
 	public int gatheringCandidate() {
@@ -149,7 +150,6 @@ public class libnice {
 	public interface StateObserver {
 		String[] STATE_TABLE = {"disconnected", "gathering", "connecting",
                 "connected", "ready", "failed"};
-		
 		void cbCandidateGatheringDone(int stream_id);
 		void cbComponentStateChanged(int stream_id,int component_id,int state);
 	}

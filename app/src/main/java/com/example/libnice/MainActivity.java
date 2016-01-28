@@ -34,10 +34,16 @@ import com.via.libnice;
 
 
 public class MainActivity extends Activity {
+	boolean selfLoop = true;
+
 	libnice nice = new libnice();
 	libnice nice2= new libnice();
 	String STUN_IP 	= "74.125.204.127";
 	int    STUN_PORT= 19302;
+	String sdp = "";
+	String sdp2= "";
+	CommunicationPart cp1;
+	CommunicationPart cp2;
 
 	Handler handler = new Handler();
 	Button initBtn = null;
@@ -102,7 +108,7 @@ public class MainActivity extends Activity {
 	};
 
 	
-	boolean initNice(libnice nice) {
+	boolean initNice(libnice nice,int i) {
 		/*
 			0 => Fail
 			1 => Success
@@ -124,7 +130,7 @@ public class MainActivity extends Activity {
 		int controllMode = 0;
 		nice.setControllingMode(controllMode);
 		String streamName = "P2PStream";
-		int numberOfComponent = 4;
+		int numberOfComponent = 5;
 		// TODO: return stream id
 		/*
 			ret = 0 => Fail.
@@ -146,12 +152,22 @@ public class MainActivity extends Activity {
 		nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView4),forComponentIndex);
 
 		forComponentIndex = 5;
-		CommunicationPart cp = new CommunicationPart(instance, nice,forComponentIndex);
-		nice.registerReceiveCallback(cp, forComponentIndex);
-		
+		if(i==1) {
+			cp1 = new CommunicationPart(instance, nice,forComponentIndex);
+			nice.registerReceiveCallback(cp1, forComponentIndex);
+		} else {
+			cp2 = new CommunicationPart(instance, nice,forComponentIndex);
+			nice.registerReceiveCallback(cp2, forComponentIndex);
+		}
+
 		// register a state Observer to catch stream/component state change
-		nice.registerStateObserver(new NiceStateObserver(nice));
-		// TODO: add stream id, each stream has self SDP. 
+        nice.registerStateObserver(new NiceStateObserver(nice,i));
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // TODO: add stream id, each stream has self SDP.
 		if(nice.gatheringCandidate()==1) {
 			showToast("gathering Candidate Success, please wait gathering done then getLocalSDP");
 		} else {
@@ -163,13 +179,15 @@ public class MainActivity extends Activity {
 	}
 	
 	
-	OnClickListener initListener = new OnClickListener(){
+	OnClickListener initListener = new OnClickListener() {
 
-		public void onClick(View v) {
+        public void onClick(View v) {
 
-			if (initNice(nice) && initNice(nice2)) {
-				showToast("nice,nice2 create success");
+			if (initNice(nice,1) && initNice(nice2,2)) {
+				showToast("nice nice2 create success!");
 			}
+
+
 
 			Thread a = new Thread(new Runnable() {
 				public void run() {
@@ -215,8 +233,12 @@ public class MainActivity extends Activity {
 			   editDialog.setPositiveButton("SEND", new DialogInterface.OnClickListener() {
 			    // do something when the button is clicked
 			    public void onClick(DialogInterface arg0, int arg1) {
-					nice.setRemoteSdp(remoteSdp);
-
+					if(selfLoop) {
+						nice.setRemoteSdp(sdp2);
+						nice2.setRemoteSdp(sdp);
+					} else {
+						nice.setRemoteSdp(remoteSdp);
+					}
 			    }
 			    });
 			   editDialog.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
@@ -247,8 +269,11 @@ public class MainActivity extends Activity {
 			    // do something when the button is clicked
 			    public void onClick(DialogInterface arg0, int arg1) {
 			    	String sendmsg = editText.getText().toString();
-					nice.sendMsg(sendmsg,1);
-					AddTextToChat("Me:"+sendmsg);
+					//nice.sendMsg(sendmsg,1);
+					cp1.sendMessage("Halo i'm cp1");
+					cp2.sendMessage("Halo i'm cp2");
+
+					//AddTextToChat("Me:"+sendmsg);
 			    }
 			    });
 			   editDialog.setNeutralButton("play video", new DialogInterface.OnClickListener() {
@@ -268,7 +293,6 @@ public class MainActivity extends Activity {
 							for(;;){
 								// TODO Auto-generated method stub
 								int naluSize = me.readSampleData(naluBuffer, 0);
-								
 								
 								LOGD("Sent naluSize : "+naluSize);
 								int divideSize = DEFAULT_DIVIDED_SIZE;
@@ -348,8 +372,6 @@ public class MainActivity extends Activity {
 		videoSurfaceView3 = (SurfaceView) findViewById(R.id.surfaceView3);
 		videoSurfaceView4 = (SurfaceView) findViewById(R.id.surfaceView4);
 
-		
-
 //		resultView = (TextView) findViewById(R.id.textView2);
 		initBtn.setOnClickListener(initListener);
 		getBtn.setOnClickListener(getListener);
@@ -382,8 +404,7 @@ public class MainActivity extends Activity {
 	private void LOGD(String msg) {
 		Log.d("Libnice-java",msg);
 	}
-	String sdp = "";
-	
+
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle action bar item clicks here. The action bar will
 		// automatically handle clicks on the Home/Up button, so long
@@ -410,18 +431,30 @@ public class MainActivity extends Activity {
 
 	public class NiceStateObserver implements libnice.StateObserver {
 			private libnice mNice;
-			public NiceStateObserver(libnice nice) {
+			int index = -1;
+			public NiceStateObserver(libnice nice,int i) {
 				mNice = nice;
+				index = i;
 			}
 			public void cbComponentStateChanged(final int stream_id, final int component_id,
 												final int state) {
-				Log.d("cbComponentStateChanged","Stream["+stream_id+"]["+component_id+"]:"+libnice.StateObserver.STATE_TABLE[state]);
+				Log.d("cbComponentStateChanged","Index["+index+"]"+"Stream["+stream_id+"]["+component_id+"]:"+libnice.StateObserver.STATE_TABLE[state]);
 			}
 			public void cbCandidateGatheringDone(int stream_id) {
 				/*
 					if candidate gathering done, then it will getLocalSDP automatically.
 				 */
-				String sdp = mNice.getLocalSdp();
+
+				if(index==1) {
+					sdp =  mNice.getLocalSdp();
+//                    if(selfLoop)
+//                        nice2.setRemoteSdp(sdp);
+				} else {
+					sdp2= mNice.getLocalSdp();
+//                    if(selfLoop)
+//                        nice.setRemoteSdp(sdp2);
+
+				}
 				showToast("get sdp : "+sdp);
 			}
 	}

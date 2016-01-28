@@ -1,6 +1,8 @@
 package com.example.libnice;
 
 
+import android.util.Log;
+
 import com.via.libnice;
 public class CommunicationPart implements libnice.ReceiveCallback {
 	int COMMUNICATION_COMPONENT_ID = -1;
@@ -16,10 +18,14 @@ public class CommunicationPart implements libnice.ReceiveCallback {
 
 	public void onMessage(byte[] buf) {
 		String tmp = new String(buf);
+		Log.d("Hank", tmp);
+
 		loggingMessage += tmp + "\n";
-		if(tmp.startsWith("VIDEOSTART")) {
-			
-		}
+//		if(tmp.startsWith("VIDEOSTART")) {
+//
+//
+// }
+		mAct.showToast(tmp);
 	}
 
 	public void sendMessage(String msg) {
