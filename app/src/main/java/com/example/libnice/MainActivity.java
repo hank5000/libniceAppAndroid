@@ -120,7 +120,7 @@ public class MainActivity extends Activity {
 			If useReliable = 1, the libnice will send the few small packages which is separated by user giving package
 						   = 0, the libnice will send the original package.
 		 */
-		int useReliable = 1;
+		int useReliable = 0;
 		nice.createAgent(useReliable);
 		nice.setStunAddress(STUN_IP, STUN_PORT);
 		/*
