@@ -29,11 +29,11 @@ task clearJar(type: Delete) {
 }
 
 task makeJar(type:Jar) {
-    //指定生成的jar名
+    // generate *.jar name
     baseName 'libnice'
-    //从哪里打包class文件
+    // generate from
     from('build/intermediates/classes/debug/com/via/')
-    //打包到jar后的目录结构
+    // generate to
     into('libs/')
 }
 
