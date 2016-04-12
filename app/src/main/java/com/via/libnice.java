@@ -2,9 +2,6 @@ package com.via;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Semaphore;
 
-import android.util.Log;
-import com.gstreamer.GStreamer;
-
 public class libnice {
 	static {
 		System.loadLibrary("gstreamer_android");
