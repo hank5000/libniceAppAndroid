@@ -29,9 +29,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.via.libnice;
+import com.via.p2p.*;
 // avoid gstreamer_android cannot find issue.
-
 
 public class MainActivity extends Activity {
 	boolean selfLoop = true;
@@ -150,13 +149,12 @@ public class MainActivity extends Activity {
 		nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView3),forComponentIndex);
 		forComponentIndex = 4;
 		nice.registerReceiveCallback(new VideoRecvCallback(videoSurfaceView4),forComponentIndex);
-
 		forComponentIndex = 5;
 		if(i==1) {
-			cp1 = new CommunicationPart(instance, nice,forComponentIndex);
+			cp1 = new CommunicationPart(nice,forComponentIndex);
 			nice.registerReceiveCallback(cp1, forComponentIndex);
 		} else {
-			cp2 = new CommunicationPart(instance, nice,forComponentIndex);
+			cp2 = new CommunicationPart(nice,forComponentIndex);
 			nice.registerReceiveCallback(cp2, forComponentIndex);
 		}
 
