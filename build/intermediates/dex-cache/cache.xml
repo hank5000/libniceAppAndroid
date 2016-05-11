@@ -2,11 +2,46 @@
 <items version="2" >
 
     <item
-        jar="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/build/intermediates/exploded-aar/libniceAppAndroid/p2p/unspecified/jars/classes.jar"
+        jar="/Users/HankWu/.gradle/caches/modules-2/files-2.1/com.github.nkzawa/socket.io-client/0.4.1/30639ee3c8816d04b0562ddf5291ecf65d0a8951/socket.io-client-0.4.1.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="30639ee3c8816d04b0562ddf5291ecf65d0a8951">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/pre-dexed/debug/socket.io-client-0.4.1-e359650adf92109c1504590c25f4cbb40b2efe9f.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/build/intermediates/exploded-aar/libniceAppAndroid/p2pHelper/unspecified/jars/classes.jar"
         jumboMode="false"
         revision="23.0.1"
-        sha1="232023673799dc31b37f26a6fa7cce700848148c">
-        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/build/intermediates/pre-dexed/debug/classes-b3d0610f579c151d745d55ad7796275d5eb5f35d.jar" />
+        sha1="4784ef9ac43e8154fa65a8eb2af3ffb974534e0f">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/build/intermediates/pre-dexed/debug/classes-8ed837b2dce323a6e4aa6d1338a5894821328016.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/exploded-aar/com.android.support/support-v4/23.2.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="e5f32fa48a3eb2de0c987025c11b6e3864b634d9">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/pre-dexed/debug/classes-5efc1994755b6bda4869064129d44b04f461f8de.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/Documents/adt-bundle-mac-x86_64-20140702/sdk/extras/android/m2repository/com/android/support/support-annotations/23.2.0/support-annotations-23.2.0.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="c5bf571bb10462bd90e5419ade67793f71acbc87">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/pre-dexed/debug/support-annotations-23.2.0-904b011588ddd37ab2237c109995ca4232fa0fe2.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.2.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="6e3578f92f7462d1a935a1d36173e3bdd1234976">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/pre-dexed/debug/classes-5cf7cb7a0a3da2d7c8c21aa7ff09d540a14bf34b.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/build/intermediates/exploded-aar/libniceAppAndroid/libnice/unspecified/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="6402e5958b0396794f335179fbd6e138a05f09a7">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/build/intermediates/pre-dexed/debug/classes-8f4ca67e8645e743553ce1504fb0382bde935615.jar" />
     </item>
     <item
         jar="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/libs/core-3.2.0.jar"
@@ -16,11 +51,81 @@
         <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/build/intermediates/pre-dexed/debug/core-3.2.0-1cf82290460a8b37f0aad7fce2eec4247d3837a3.jar" />
     </item>
     <item
+        jar="/Users/HankWu/.gradle/caches/modules-2/files-2.1/org.java-websocket/Java-WebSocket/1.3.0/db2658f013fb163de4a99274c2eb9e17efe535d2/Java-WebSocket-1.3.0.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="db2658f013fb163de4a99274c2eb9e17efe535d2">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/pre-dexed/debug/Java-WebSocket-1.3.0-1b8dbcc84f536815485db5ffaefc26da830d3676.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/exploded-aar/libniceAppAndroid/libnice/unspecified/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="6402e5958b0396794f335179fbd6e138a05f09a7">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/pre-dexed/debug/classes-ecd63e7faedbaa0d778b861c0dc48768e4088de3.jar" />
+    </item>
+    <item
         jar="/Users/HankWu/Documents/adt-bundle-mac-x86_64-20140702/sdk/extras/android/m2repository/com/android/support/support-v4/19.1.0/support-v4-19.1.0.jar"
         jumboMode="false"
         revision="23.0.1"
         sha1="85f201b380937e61a9dce6ca90ccf6872abbfb67">
         <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/build/intermediates/pre-dexed/debug/support-v4-19.1.0-a5ad144564daf1d9b491c2e69d673a1bec2a6079.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/.gradle/caches/modules-2/files-2.1/com.github.nkzawa/engine.io-client/0.4.1/9fa2901033b1e43a254a35bc82be281dfa7bc48f/engine.io-client-0.4.1.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="9fa2901033b1e43a254a35bc82be281dfa7bc48f">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/build/intermediates/pre-dexed/debug/engine.io-client-0.4.1-be843c201eba5a17ae0f11c9279fe0a97cfc9739.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/.gradle/caches/modules-2/files-2.1/org.java-websocket/Java-WebSocket/1.3.0/db2658f013fb163de4a99274c2eb9e17efe535d2/Java-WebSocket-1.3.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="db2658f013fb163de4a99274c2eb9e17efe535d2">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/build/intermediates/pre-dexed/debug/Java-WebSocket-1.3.0-1b8dbcc84f536815485db5ffaefc26da830d3676.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/exploded-aar/com.android.support/support-vector-drawable/23.2.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="292a9fa091757208efa65e77eef63088247e51f3">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/pre-dexed/debug/classes-16913a234ef9712b40ba0f12c9d0fa137b3db819.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/exploded-aar/libniceAppAndroid/p2pHelper/unspecified/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="08476e1c0cfa8c97fc32be828fa7793b59d35dd3">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/pre-dexed/debug/classes-bb6d0aec386a22d5ee1734db7b09eeb346b09612.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/.gradle/caches/modules-2/files-2.1/com.github.nkzawa/engine.io-client/0.4.1/9fa2901033b1e43a254a35bc82be281dfa7bc48f/engine.io-client-0.4.1.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="9fa2901033b1e43a254a35bc82be281dfa7bc48f">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/pre-dexed/debug/engine.io-client-0.4.1-be843c201eba5a17ae0f11c9279fe0a97cfc9739.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/.gradle/caches/modules-2/files-2.1/com.github.nkzawa/socket.io-client/0.4.1/30639ee3c8816d04b0562ddf5291ecf65d0a8951/socket.io-client-0.4.1.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="30639ee3c8816d04b0562ddf5291ecf65d0a8951">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/app/build/intermediates/pre-dexed/debug/socket.io-client-0.4.1-e359650adf92109c1504590c25f4cbb40b2efe9f.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/exploded-aar/com.android.support/animated-vector-drawable/23.2.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="8c108c22c99e794eff255bb34d2a461200c4cbb0">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/pre-dexed/debug/classes-f27fbfb503373cd6f35235b83ad7292edaf2e794.jar" />
+    </item>
+    <item
+        jar="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/exploded-aar/com.android.support/support-v4/23.2.0/jars/libs/internal_impl-23.2.0.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="6e239441500605809818997dd63b62a947195f8c">
+        <dex dex="/Users/HankWu/Android_Project/Android/libniceAppAndroid/serverside/build/intermediates/pre-dexed/debug/internal_impl-23.2.0-d15f43c6eeef6a00de96df80faf480e1504b4e1e.jar" />
     </item>
 
 </items>

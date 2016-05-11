@@ -1,1 +1,1 @@
-include ':app', ':p2p'
+include ':app', ':p2pHelper', ':libnice', ':serverside'

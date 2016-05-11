@@ -15,7 +15,8 @@ ADDED from AndroidManifest.xml:2:1
 		ADDED from AndroidManifest.xml:2:11
 uses-sdk
 ADDED from AndroidManifest.xml:7:5
-MERGED from libniceAppAndroid:p2p:unspecified:7:5
+MERGED from libniceAppAndroid:p2pHelper:unspecified:7:5
+MERGED from libniceAppAndroid:libnice:unspecified:7:5
 	android:targetSdkVersion
 		ADDED from AndroidManifest.xml:9:9
 		INJECTED from AndroidManifest.xml:0:0
@@ -38,11 +39,12 @@ ADDED from AndroidManifest.xml:12:11
 		ADDED from AndroidManifest.xml:12:28
 application
 ADDED from AndroidManifest.xml:14:5
-MERGED from libniceAppAndroid:p2p:unspecified:11:5
+MERGED from libniceAppAndroid:p2pHelper:unspecified:11:5
+MERGED from libniceAppAndroid:libnice:unspecified:11:5
 	android:label
 		ADDED from AndroidManifest.xml:17:9
 	android:supportsRtl
-		ADDED from libniceAppAndroid:p2p:unspecified:14:9
+		ADDED from libniceAppAndroid:p2pHelper:unspecified:14:9
 	android:allowBackup
 		ADDED from AndroidManifest.xml:15:9
 	android:icon
