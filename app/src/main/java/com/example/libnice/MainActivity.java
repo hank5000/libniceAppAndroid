@@ -7,10 +7,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 
-import com.via.p2p.*;
+import com.via.p2pserverhelper.*;
 
 public class MainActivity extends Activity {
-	P2PThread p2pThread = null;
+	P2PServerHelper p2PServerHelper = null;
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -18,8 +18,8 @@ public class MainActivity extends Activity {
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		try {
-			p2pThread = new P2PThread(this);
-			p2pThread.start();
+			p2PServerHelper = new P2PServerHelper(this);
+			p2PServerHelper.start();
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
@@ -28,8 +28,8 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if(p2pThread!=null)
-			p2pThread.release();
+		if(p2PServerHelper !=null)
+			p2PServerHelper.release();
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {

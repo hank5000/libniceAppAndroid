@@ -97,8 +97,8 @@
     <orderEntry type="library" exported="" name="core-3.2.0" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="mockable-android-19" level="project" />
     <orderEntry type="library" exported="" name="support-v4-19.1.0" level="project" />
-    <orderEntry type="library" exported="" name="engine.io-client-0.4.1" level="project" />
     <orderEntry type="library" exported="" name="socket.io-client-0.4.1" level="project" />
+    <orderEntry type="library" exported="" name="engine.io-client-0.4.1" level="project" />
     <orderEntry type="module" module-name="P2PServerHelper" exported="" />
   </component>
 </module>

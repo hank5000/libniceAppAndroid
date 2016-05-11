@@ -9,15 +9,21 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/P2PClientHelper" />
+            <option value="$PROJECT_DIR$/P2PServerHelper" />
+            <option value="$PROJECT_DIR$/ServerSideTestApp" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/p2p" />
+            <option value="$PROJECT_DIR$/libniceCore" />
           </set>
         </option>
         <option name="myModules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/P2PClientHelper" />
+            <option value="$PROJECT_DIR$/P2PServerHelper" />
+            <option value="$PROJECT_DIR$/ServerSideTestApp" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/p2p" />
+            <option value="$PROJECT_DIR$/libniceCore" />
           </set>
         </option>
       </GradleProjectSettings>
