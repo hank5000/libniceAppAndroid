@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- From: file:/Users/HankWu/Android_Project/Android/libniceAppAndroid/P2PServerHepler/src/main/res/values/strings.xml -->
+    <eat-comment/>
+    <string name="app_name">p2p</string>
+</resources>

@@ -2,9 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/P2PClientHelper/p2pclienthelper.iml" filepath="$PROJECT_DIR$/P2PClientHelper/p2pclienthelper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/P2PServerHelper/P2PServerHelper.iml" filepath="$PROJECT_DIR$/P2PServerHelper/P2PServerHelper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ServerSideTestApp/serverside.iml" filepath="$PROJECT_DIR$/ServerSideTestApp/serverside.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/libniceAppAndroid.iml" filepath="$PROJECT_DIR$/libniceAppAndroid.iml" />
-      <module fileurl="file://$PROJECT_DIR$/p2p/p2p.iml" filepath="$PROJECT_DIR$/p2p/p2p.iml" />
+      <module fileurl="file://$PROJECT_DIR$/libniceCore/libniceCore.iml" filepath="$PROJECT_DIR$/libniceCore/libniceCore.iml" />
     </modules>
   </component>
 </project>
