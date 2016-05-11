@@ -3,7 +3,7 @@ package com.via.p2pclienthelper;
 
 import android.util.Log;
 
-import com.via.p2pserverhelper.libnice;
+import com.via.p2p.libnice;
 
 public class CommunicationPart implements libnice.ReceiveCallback {
 	int COMMUNICATION_COMPONENT_ID = -1;

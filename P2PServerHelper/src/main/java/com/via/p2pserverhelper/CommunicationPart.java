@@ -3,6 +3,8 @@ package com.via.p2pserverhelper;
 
 import android.util.Log;
 
+import com.via.p2p.libnice;
+
 import java.nio.ByteBuffer;
 
 public class CommunicationPart implements libnice.ReceiveCallback {

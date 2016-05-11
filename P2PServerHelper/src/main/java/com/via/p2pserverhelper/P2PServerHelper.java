@@ -7,6 +7,9 @@ import android.widget.Toast;
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
+import com.via.p2p.DefaultSetting;
+import com.via.p2p.libnice;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -22,9 +25,10 @@ public class P2PServerHelper extends Thread {
     String localSdp = "";
     Context application_ctx = null;
     private Socket mSocket;
-    String STUN_IP 	= "74.125.204.127";
-    int    STUN_PORT= 19302;
-    CommunicationPart cp1 = null;
+    CommunicationPart[] cps = new CommunicationPart[5];
+
+    private String username = null;
+    private String password = null;
 
     public void release() {
         mNice.release();
@@ -34,11 +38,30 @@ public class P2PServerHelper extends Thread {
         try {
             application_ctx = ctx;
             setSocketIOAndConnect();
-            mNice = new libnice();
-            initNice(mNice);
         } catch (URISyntaxException e) {
             throw e;
         }
+    }
+
+    public void prepare() {
+        mNice = new libnice();
+        initNice(mNice);
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     boolean initNice(libnice nice) {
@@ -75,17 +98,10 @@ public class P2PServerHelper extends Thread {
         }
 
 //         register a receive Observer to get byte array from jni side to java side.
-        int forComponentIndex = 1;
-        nice.registerReceiveCallback(new CommunicationPart(nice, forComponentIndex),forComponentIndex);
-        forComponentIndex = 2;
-        nice.registerReceiveCallback(new CommunicationPart(nice, forComponentIndex),forComponentIndex);
-        forComponentIndex = 3;
-        nice.registerReceiveCallback(new CommunicationPart(nice, forComponentIndex),forComponentIndex);
-        forComponentIndex = 4;
-        nice.registerReceiveCallback(new CommunicationPart(nice, forComponentIndex),forComponentIndex);
-        forComponentIndex = 5;
-        cp1 = new CommunicationPart(nice, forComponentIndex);
-        nice.registerReceiveCallback(cp1, forComponentIndex);
+        for(int compIndex=0;compIndex<5;compIndex++) {
+            cps[compIndex] = new CommunicationPart(nice, compIndex);
+            nice.registerReceiveCallback(cps[compIndex],compIndex);
+        }
 
         // register a state Observer to catch stream/component state change
         nice.registerStateObserver(new NiceStateObserver(nice));
@@ -130,7 +146,6 @@ public class P2PServerHelper extends Thread {
             throw new RuntimeException(e);
         }
     }
-
 
     private Emitter.Listener onResponse = new Emitter.Listener() {
         @Override
@@ -184,7 +199,6 @@ public class P2PServerHelper extends Thread {
         }
     }
 
-
     public void setContext(Context app_ctx) {
         application_ctx = app_ctx;
     }
@@ -217,13 +231,7 @@ public class P2PServerHelper extends Thread {
         public void cbCandidateGatheringDone(int stream_id) {
             localSdp= mNice.getLocalSdp();
 
-//            if((new String(Base64.decode(localSdp,Base64.DEFAULT))).contains("220")) {
-//                //showToast("D","The stun server is alive!!!");
-//                //Log.d("D","The stun server is alive!!!");
-//
-//            }
-
-            mSocket.emit("add user", DefaultSetting.sourcePeerUsername);
+            mSocket.emit("add user", username==null?DefaultSetting.sourcePeerUsername:username);
             mSocket.emit("set local sdp",localSdp);
         }
     }

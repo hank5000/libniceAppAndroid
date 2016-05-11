@@ -6,7 +6,7 @@ import android.net.LocalSocketAddress;
 import android.util.Log;
 import android.view.SurfaceView;
 
-import com.via.p2pserverhelper.libnice;
+import com.via.p2p.libnice;
 
 import java.io.IOException;
 import java.io.InputStream;

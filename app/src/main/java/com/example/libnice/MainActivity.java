@@ -19,6 +19,8 @@ public class MainActivity extends Activity {
 
 		try {
 			p2PServerHelper = new P2PServerHelper(this);
+
+			p2PServerHelper.prepare();
 			p2PServerHelper.start();
 		} catch (URISyntaxException e) {
 			e.printStackTrace();

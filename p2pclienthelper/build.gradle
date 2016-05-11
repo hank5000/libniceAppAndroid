@@ -24,4 +24,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.2.0'
     compile project(':libniceCore')
+    compile ('com.github.nkzawa:socket.io-client:0.4.1'){
+        exclude group: 'org.json', module: 'json'
+    }
 }

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import com.via.p2p.DefaultSetting;
 import com.via.p2pserverhelper.P2PServerHelper;
 
 import java.net.URISyntaxException;
@@ -55,6 +56,8 @@ public class MainActivity extends Activity {
         if(p2PServerHelper ==null) {
             try {
                 p2PServerHelper = new P2PServerHelper(this);
+                p2PServerHelper.setUsername(DefaultSetting.sourcePeerUsername);
+                p2PServerHelper.prepare();
                 p2PServerHelper.start();
             } catch (URISyntaxException e) {
                 e.printStackTrace();
