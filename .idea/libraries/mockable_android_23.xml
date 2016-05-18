@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="mockable-android-23">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/ServerSideTestApp/build/intermediates/mockable-android-23.jar!/" />
+      <root url="jar://$PROJECT_DIR$/P2PClientHelper/build/intermediates/mockable-android-23.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
