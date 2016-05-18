@@ -25,13 +25,21 @@ public class P2PClientHelper extends Thread {
     String localSdp = "";
     Context application_ctx = null;
     private Socket mSocket;
-    CommunicationPart[] cps = new CommunicationPart[5];
+    CommunicationPart[] cps = new CommunicationPart[6];
 
     private String username = null;
     private String password = null;
 
+    boolean bReadyToPairing = false;
+
+
     public void release() {
-        mNice.release();
+        bReadyToPairing = false;
+        stopAllProcess();
+        if(mNice!=null) {
+            mNice.release();
+            mNice = null;
+        }
     }
 
     public P2PClientHelper(Context ctx) throws URISyntaxException {
@@ -44,8 +52,11 @@ public class P2PClientHelper extends Thread {
     }
 
     public void prepare() {
+        bReadyToPairing = false;
         mNice = new libnice();
-        initNice(mNice);
+        if(initNice(mNice)) {
+            Log.d("HANK","Init libnice success!!");
+        }
     }
 
     public String getUsername() {
@@ -63,6 +74,7 @@ public class P2PClientHelper extends Thread {
     public void setPassword(String password) {
         this.password = password;
     }
+
 
     boolean initNice(libnice nice) {
 		/*
@@ -98,7 +110,7 @@ public class P2PClientHelper extends Thread {
         }
 
 //         register a receive Observer to get byte array from jni side to java side.
-        for(int compIndex=0;compIndex<5;compIndex++) {
+        for(int compIndex=1;compIndex<=5;compIndex++) {
             cps[compIndex] = new CommunicationPart(nice, compIndex);
             nice.registerReceiveCallback(cps[compIndex],compIndex);
         }
@@ -194,10 +206,14 @@ public class P2PClientHelper extends Thread {
         /*
             TODO: Add process killer.
          */
-        if(mNice!=null) {
-            mNice = null;
-        }
+
     }
+
+    public void pairing() {
+        mSocket.emit("get remote sdp",username+":"+localSdp);
+    }
+
+
 
     public void setContext(Context app_ctx) {
         application_ctx = app_ctx;
@@ -218,6 +234,18 @@ public class P2PClientHelper extends Thread {
         }
     }
 
+    public boolean isReadyToPairing() {
+        return bReadyToPairing;
+    }
+
+    public String getLocalSdp() {
+        return localSdp;
+    }
+
+    public void setRemoteSDP(String sdp) {
+        mNice.setRemoteSdp(sdp);
+    }
+
     public class NiceStateObserver implements libnice.StateObserver {
         private libnice mNice;
 
@@ -226,13 +254,13 @@ public class P2PClientHelper extends Thread {
         }
         public void cbComponentStateChanged(final int stream_id, final int component_id,
                                             final int state) {
-            Log.d("cbComponentStateChanged","Stream["+stream_id+"]["+component_id+"]:"+libnice.StateObserver.STATE_TABLE[state]);
+            Log.d("cbComponentState_c","Stream["+stream_id+"]["+component_id+"]:"+libnice.StateObserver.STATE_TABLE[state]);
         }
         public void cbCandidateGatheringDone(int stream_id) {
             localSdp= mNice.getLocalSdp();
-
-            mSocket.emit("add user", username==null?DefaultSetting.sourcePeerUsername:username);
-            mSocket.emit("set local sdp",localSdp);
+            bReadyToPairing = true;
+//            mSocket.emit("add user", username==null?DefaultSetting.sourcePeerUsername:username);
+//            mSocket.emit("set local sdp",localSdp);
         }
     }
 

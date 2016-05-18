@@ -25,10 +25,13 @@ public class P2PServerHelper extends Thread {
     String localSdp = "";
     Context application_ctx = null;
     private Socket mSocket;
-    CommunicationPart[] cps = new CommunicationPart[5];
+    CommunicationPart[] cps = new CommunicationPart[6];
+    libnice.ReceiveCallback[] callbacks = new libnice.ReceiveCallback[6];
 
     private String username = null;
     private String password = null;
+
+    final int MessageChannelNumber = 5;
 
     public void release() {
         mNice.release();
@@ -45,7 +48,9 @@ public class P2PServerHelper extends Thread {
 
     public void prepare() {
         mNice = new libnice();
-        initNice(mNice);
+        if(initNice(mNice)) {
+            Log.d("HANK","Init libnice success!!");
+        }
     }
 
     public String getUsername() {
@@ -98,9 +103,27 @@ public class P2PServerHelper extends Thread {
         }
 
 //         register a receive Observer to get byte array from jni side to java side.
-        for(int compIndex=0;compIndex<5;compIndex++) {
-            cps[compIndex] = new CommunicationPart(nice, compIndex);
-            nice.registerReceiveCallback(cps[compIndex],compIndex);
+        for(int compIndex=1;compIndex<=5;compIndex++) {
+            if(compIndex==MessageChannelNumber) {
+                cps[compIndex] = new CommunicationPart(nice, compIndex);
+                nice.registerReceiveCallback(cps[compIndex], compIndex);
+
+                final int index = compIndex;
+                callbacks[compIndex] = new libnice.ReceiveCallback() {
+                    @Override
+                    public void onMessage(byte[] buf) {
+
+                    }
+
+                    public void sendMessage(String s) {
+                        mNice.sendMsg(s,index);
+                    }
+                };
+
+            } else {
+                callbacks[compIndex] = new CommunicationPart(nice, compIndex);
+                nice.registerReceiveCallback(callbacks[compIndex], compIndex);
+            }
         }
 
         // register a state Observer to catch stream/component state change
@@ -192,11 +215,22 @@ public class P2PServerHelper extends Thread {
 
     private void stopAllProcess() {
         /*
-            TODO: Add process killer.
+            TODO: Kill Process
          */
-        if(mNice!=null) {
-            mNice = null;
-        }
+    }
+
+    public void reset() {
+        mNice.restartStream();
+        localSdp = "";
+        localSdp = mNice.getLocalSdp();
+    }
+
+    public String getLocalSdp() {
+        return localSdp;
+    }
+
+    public void setRemoteSDP(String sdp) {
+        mNice.setRemoteSdp(sdp);
     }
 
     public void setContext(Context app_ctx) {
@@ -226,14 +260,17 @@ public class P2PServerHelper extends Thread {
         }
         public void cbComponentStateChanged(final int stream_id, final int component_id,
                                             final int state) {
-            Log.d("cbComponentStateChanged","Stream["+stream_id+"]["+component_id+"]:"+libnice.StateObserver.STATE_TABLE[state]);
+            Log.d("cbComponentState_s","Stream["+stream_id+"]["+component_id+"]:"+libnice.StateObserver.STATE_TABLE[state]);
         }
         public void cbCandidateGatheringDone(int stream_id) {
             localSdp= mNice.getLocalSdp();
-
             mSocket.emit("add user", username==null?DefaultSetting.sourcePeerUsername:username);
             mSocket.emit("set local sdp",localSdp);
         }
+    }
+
+    public void sendMessage(String mesg) {
+        //callbacks[MessageChannelNumber].sendMessage(mesg);
     }
 
 

@@ -21,7 +21,7 @@ public class MainActivity extends Activity {
 
         Button startBtn = (Button)findViewById(R.id.start_p2p);
         Button stopBtn  = (Button)findViewById(R.id.stop_p2p);
-        Button pairBtn  = (Button)findViewById(R.id.pair_p2p);
+        Button resetBtn  = (Button)findViewById(R.id.reset_p2p);
 
 
 
@@ -32,17 +32,18 @@ public class MainActivity extends Activity {
             }
         });
 
-//        pairBtn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
+        resetBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                p2PServerHelper.reset();
 //                if(p2PServerHelper!=null && p2pThread2!=null) {
 //                    String sdp1 = p2PServerHelper.getSDP();
 //                    String sdp2 = p2pThread2.getSDP();
 //                    p2PServerHelper.setSDP(sdp2);
 //                    p2pThread2.setSDP(sdp1);
 //                }
-//            }
-//        });
+            }
+        });
 
         stopBtn.setOnClickListener(new View.OnClickListener() {
             @Override

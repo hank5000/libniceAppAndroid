@@ -17,7 +17,7 @@ public class CommunicationPart implements libnice.ReceiveCallback {
 
 	public void onMessage(byte[] buf) {
 		String tmp = new String(buf);
-		Log.d("Hank", tmp);
+		Log.d("Client", tmp);
 
 		loggingMessage += tmp + "\n";
 	}

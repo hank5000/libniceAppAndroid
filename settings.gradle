@@ -1,1 +1,1 @@
-include ':app', ':P2PServerHelper', ':libniceCore', ':ServerSideTestApp', ':P2PClientHelper'
+include ':app', ':P2PServerHelper', ':libniceCore', ':ServerSideTestApp', ':P2PClientHelper', ':clientsidetestapp', ':serverclienttester'

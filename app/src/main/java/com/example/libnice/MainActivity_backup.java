@@ -167,7 +167,7 @@
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
-//        // TODO: add stream id, each stream has self SDP.
+//
 //		if(nice.gatheringCandidate()==1) {
 //			showToast("gathering Candidate Success, please wait gathering done then getLocalSDP");
 //		} else {

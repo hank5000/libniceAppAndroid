@@ -25,7 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="PAIR P2P "
-            android:id="@+id/pair_p2p"/>
+            android:id="@+id/reset_p2p"/>
 
 
         <Button
