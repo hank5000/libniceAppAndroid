@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 public class VideoThread extends Thread {
     final static String TAG = "libnice-vt";
 
-    byte[] inputStreamTmp = new byte[1024*1024];
+    byte[] inputStreamTmp = new byte[1024*1024*2];
     ByteBuffer rawDataCollectBuffer = ByteBuffer.allocate(1024*1024*10);
     byte[] dst  = new byte[1024*1024];
     private MediaCodec decoder;
@@ -52,13 +52,14 @@ public class VideoThread extends Thread {
         this.mSPS     = sps;
         this.mPPS     = pps;
         this.is       = inputStream;
+        Log.d("HANK",mime+","+width+","+height+","+sps+","+pps);
     }
 
     final static String MediaFormat_SPS = "csd-0";
     final static String MediaFormat_PPS = "csd-1";
 
     public void run() {
-
+        Log.d("HANK","111");
         /// Create Decoder -START- ///
         try {
             MediaFormat format = new MediaFormat();
@@ -67,6 +68,8 @@ public class VideoThread extends Thread {
             format.setInteger(MediaFormat.KEY_HEIGHT, mHeight);
             format.setByteBuffer(MediaFormat_SPS, ByteBuffer.wrap(hexStringToByteArray(mSPS)));
             format.setByteBuffer(MediaFormat_PPS, ByteBuffer.wrap(hexStringToByteArray(mPPS)));
+
+            Log.d("HANK","222");
 
             decoder = MediaCodec.createDecoderByType(mMime);
             if(decoder == null) {
@@ -132,7 +135,6 @@ public class VideoThread extends Thread {
                     		rawDataCollectBuffer.compact();
                     		
                     		int nalu_unit_type = (dst[4] & 0x1F);
-                    		//Log.d(TAG,"NALU TYPE :" +nalu_unit_type);
                     		//if(nalu_unit_type!=8 && nalu_unit_type!=7 && nalu_unit_type!=6)
                     		{
 	                    		ByteBuffer buffer = inputBuffers[inIndex];
@@ -181,25 +183,19 @@ public class VideoThread extends Thread {
                 int outIndex = this.decoder.dequeueOutputBuffer(this.info, 10000);
                 switch (outIndex) {
                     case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-                        Log.d("libnice", "INFO_OUTPUT_BUFFERS_CHANGED");
+//                        Log.d("libnice", "INFO_OUTPUT_BUFFERS_CHANGED");
                         this.outputBuffers = this.decoder.getOutputBuffers();
                         break;
                     case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                        Log.d("libnice", "New format " + decoder.getOutputFormat());
+//                        Log.d("libnice", "New format " + decoder.getOutputFormat());
                         break;
                     case MediaCodec.INFO_TRY_AGAIN_LATER:
-                        //Log.d("libnice", "INFO_TRY_AGAIN_LATER");
-                        //Log.d("DecodeActivity", "dequeueOutputBuffer timed out!");
+//                        Log.d("libnice", "INFO_TRY_AGAIN_LATER");
+//                        Log.d("DecodeActivity", "dequeueOutputBuffer timed out!");
                         break;
                     default:
                         // ByteBuffer buffer = outputBuffers[outIndex];
-                        // Log.v("DecodeActivity", "We can't use this buffer but render it due to the API limit, " + buffer);
-                        try {
-                            sleep(30);
-                        } catch (InterruptedException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
+//                      Log.v("DecodeActivity", "We can't use this buffer but render it due to the API limit, " );
                         //Log.d("libnice", "coming2");
                         this.decoder.releaseOutputBuffer(outIndex, true);
                         break;

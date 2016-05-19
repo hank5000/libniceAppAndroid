@@ -2,7 +2,6 @@ package com.via.p2p;
 import android.util.Log;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 
 public class libnice {
 	static {
@@ -64,7 +63,7 @@ public class libnice {
 	private native void destroyAgentNative(long agentHandle);
 
 
-	private boolean debug = true;
+	private boolean debug = false;
 	public void enableDebugMessage(boolean b) {
 		debug = b;
 	}
@@ -80,6 +79,10 @@ public class libnice {
 	public int init() {
 		int ret = 0;
 		debugMessage("init");
+        for(int i=0;i<MAX_COMPONENT;i++) {
+            componentListeners[i] = null;
+        }
+
 		gloopLong = initNative();
 		if(gloopLong!=0) {
 			mainLoopThread.start();
@@ -115,16 +118,12 @@ public class libnice {
 		return setControllingModeNative(agentCtxHandle, controllingMode);
 	}
 
-	private ArrayList<ReceiveCallback> receiveCallbackArrayList = null;
 	private final int MAX_COMPONENT = 5;
 
-
-	public int addStream(String streamName, int numberOfComponent) {
+	public int addStream(String streamName) {
+        int numberOfComponent = MAX_COMPONENT;
 		debugMessage("addStream: streamName="+streamName+",Component="+numberOfComponent);
-		if(numberOfComponent>MAX_COMPONENT) {
-			debugMessage("addStream: numberOfComponent cannot more than "+MAX_COMPONENT);
-			return 0;
-		}
+
 
 		int ret = 0;
 		if(streamId<0) {
@@ -132,7 +131,12 @@ public class libnice {
 			if(streamId>0) {
 				debugMessage("addStream success");
 				ret = 1;
-			} else {
+
+                /*
+                    Auto register callback from c to java.
+                 */
+                registerNativeCallbackToJava();
+            } else {
 				debugMessage("addStream fail");
 				ret = 0;
 			}
@@ -174,24 +178,24 @@ public class libnice {
 		sendMsgNative(agentCtxHandle,msg,streamId,compId);
 	}
 
-	public void registerReceiveCallback(libnice.ReceiveCallback obs, int compId) {
+    private void registerReceiveCallback(libnice.ReceiveCallback obs, int compId) {
 		debugMessage("registerReceiveCallback forComponent:"+compId);
 		this.registerReceiveCallbackNative(agentCtxHandle,obs,streamId,compId);
 	}
 
-	public void registerStateObserver(libnice.StateObserver stateObserver) {
+    private void registerStateObserver(libnice.StateObserver stateObserver) {
 		debugMessage("registerStateObserver");
 		this.registerStateObserverNative(agentCtxHandle,stateObserver);
 	}
 
-	public interface StateObserver {
+	private interface StateObserver {
 		String[] STATE_TABLE = {"disconnected", "gathering", "connecting",
 				"connected", "ready", "failed"};
 		void cbCandidateGatheringDone(int stream_id);
 		void cbComponentStateChanged(int stream_id, int component_id, int state);
 	}
 
-	public interface ReceiveCallback {
+    private interface ReceiveCallback {
 		void onMessage(byte[] buf);
 	}
 
@@ -201,6 +205,8 @@ public class libnice {
 		}
 	}
 
+    private ReceiveObserver[] receiveObservers = new ReceiveObserver[MAX_COMPONENT];
+
 	public class Parameter {
 		private boolean useReliable = false;
 		private String stunIp = DefaultSetting.stunServerIp[0];
@@ -208,17 +214,71 @@ public class libnice {
 		private boolean controlling = false;
 		private String streamName = "VIAP2PStream";
 		private int numberOfComponents = 5;
-	}
+
+        public boolean isUseReliable() {
+            return useReliable;
+        }
+
+        public void setUseReliable(boolean useReliable) {
+            this.useReliable = useReliable;
+        }
+
+        public String getStunIp() {
+            return stunIp;
+        }
+
+        public void setStunIp(String stunIp) {
+            this.stunIp = stunIp;
+        }
+
+        public int getStunPort() {
+            return stunPort;
+        }
+
+        public void setStunPort(int stunPort) {
+            this.stunPort = stunPort;
+        }
+
+        public boolean isControlling() {
+            return controlling;
+        }
+
+        public void setControlling(boolean controlling) {
+            this.controlling = controlling;
+        }
+
+        public String getStreamName() {
+            return streamName;
+        }
+
+        public void setStreamName(String streamName) {
+            this.streamName = streamName;
+        }
+
+        public int getNumberOfComponents() {
+            return numberOfComponents;
+        }
+
+        public void setNumberOfComponents(int numberOfComponents) {
+            this.numberOfComponents = numberOfComponents;
+        }
+    }
 
 	private StateObserver stateObserver = new StateObserver() {
 		@Override
 		public void cbCandidateGatheringDone(int stream_id) {
 			debugMessage("cbCandidateGatheringDone");
+            if(onStateChangeListener!=null) {
+                onStateChangeListener.candiateGatheringDone();
+            }
 		}
 
 		@Override
 		public void cbComponentStateChanged(int stream_id, int component_id, int state) {
 			debugMessage("cbComponentStateChanged,["+component_id+"]:"+stateObserver.STATE_TABLE[state]);
+            if(onStateChangeListener!=null) {
+                onStateChangeListener.componentStateChanged(component_id,stateObserver.STATE_TABLE[state]);
+            }
 		}
 	};
 
@@ -230,17 +290,67 @@ public class libnice {
 
 		@Override
 		public void onMessage(byte[] buf) {
-			debugMessage("ReceiveObserver,Component["+mComponentIndex+"]:onMessage => message length="+buf.length);
+			debugMessage("ReceiveObserver,Component["+(mComponentIndex+1)+"]:onMessage => message length="+buf.length);
+            if(componentListeners[mComponentIndex]!=null) {
+                componentListeners[mComponentIndex].onMessage(buf);
+            }
 		}
 	}
 
-	public interface ComponentHandler {
+    private ComponentListener[] componentListeners = new ComponentListener[MAX_COMPONENT];
 
+	public interface ComponentListener {
+        void onMessage(byte[] bytes);
 	}
 
 	public interface OnStateChangeListener {
-
+        void candiateGatheringDone();
+        void componentStateChanged(int componentId,String stateName);
 	}
 
+    private OnStateChangeListener onStateChangeListener = null;
+
+    private void registerNativeCallbackToJava() {
+        for(int compIndex=0;compIndex<5;compIndex++) {
+            this.registerReceiveCallback(new ReceiveObserver(compIndex), compIndex+1);
+        }
+        this.registerStateObserver(stateObserver);
+    }
+
+    public void createByDefault() throws Exception {
+        Parameter parameter = new Parameter();
+        Exception createFailException = new Exception("createByDefault Fail");
+
+        if(this.init()==0) throw createFailException;
+        this.createAgent(parameter.isUseReliable()?1:0);
+        this.setStunAddress(parameter.getStunIp(),parameter.getStunPort());
+        this.setControllingMode(parameter.isControlling()?1:0);
+        if(this.addStream(parameter.getStreamName())!=1) throw createFailException;
+    }
+
+    public enum ComponentIndex {
+        Component1(0),
+        Component2(1),
+        Component3(2),
+        Component4(3),
+        Component5(4);
+
+        private int index = -1;
+        ComponentIndex(int i) {
+            index = i;
+        }
+
+        protected int getIndex() {
+            return index;
+        }
+    }
+
+    public void setOnStateChangeListener(OnStateChangeListener listener) {
+        this.onStateChangeListener = listener;
+    }
+
+    public void setComponentHandler(ComponentIndex componentIndex,ComponentListener componentListener) {
+        componentListeners[componentIndex.getIndex()] = componentListener;
+    }
 
 }

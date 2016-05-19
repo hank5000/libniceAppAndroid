@@ -1,6 +1,8 @@
 package com.via.p2pserverhelper;
 
 import android.content.Context;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -13,7 +15,9 @@ import com.via.p2p.libnice;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 
 /**
  * Created by HankWu_Office on 2015/11/26.
@@ -24,17 +28,25 @@ public class P2PServerHelper extends Thread {
     String remoteSdp = "";
     String localSdp = "";
     Context application_ctx = null;
-    private Socket mSocket;
+    private Socket mSocket = null;
     CommunicationPart[] cps = new CommunicationPart[6];
-    libnice.ReceiveCallback[] callbacks = new libnice.ReceiveCallback[6];
+    libnice.ComponentListener[] callbacks = new libnice.ComponentListener[5];
 
     private String username = null;
     private String password = null;
 
-    final int MessageChannelNumber = 5;
+    final int MessageChannelNumber = 0;
 
     public void release() {
-        mNice.release();
+        if(mSocket!=null) {
+            mSocket.disconnect();
+            mSocket.close();
+            mSocket=null;
+        }
+        if(mNice!=null) {
+            mNice.release();
+            mNice=null;
+        }
     }
 
     public P2PServerHelper(Context ctx) throws URISyntaxException {
@@ -50,6 +62,8 @@ public class P2PServerHelper extends Thread {
         mNice = new libnice();
         if(initNice(mNice)) {
             Log.d("HANK","Init libnice success!!");
+            mSocket.emit("add user", username);
+
         }
     }
 
@@ -91,43 +105,36 @@ public class P2PServerHelper extends Thread {
         int controllMode = 0;
         nice.setControllingMode(controllMode);
         String streamName = "P2PStream";
-        int numberOfComponent = 5;
         // TODO: return stream id
 		/*
 			ret = 0 => Fail.
 				= 1 => Success.
 				= 2 => It has been added.
 		 */
-        if(nice.addStream(streamName,numberOfComponent)!=1) {
+        if(nice.addStream(streamName)!=1) {
             return false;
         }
 
 //         register a receive Observer to get byte array from jni side to java side.
-        for(int compIndex=1;compIndex<=5;compIndex++) {
-            if(compIndex==MessageChannelNumber) {
-                cps[compIndex] = new CommunicationPart(nice, compIndex);
-                nice.registerReceiveCallback(cps[compIndex], compIndex);
+        int i = 0;
+        callbacks[i] = new CommunicationPart(nice,i+1);
+        nice.setComponentHandler(libnice.ComponentIndex.Component1,callbacks[i]);
+        i++;
+        callbacks[i] = new CommunicationPart(nice,i+1);
+        nice.setComponentHandler(libnice.ComponentIndex.Component2,callbacks[i]);
+        i++;
+        callbacks[i] = new CommunicationPart(nice,i+1);
+        nice.setComponentHandler(libnice.ComponentIndex.Component3,callbacks[i]);
+        i++;
+        callbacks[i] = new CommunicationPart(nice,i+1);
+        nice.setComponentHandler(libnice.ComponentIndex.Component4,callbacks[i]);
+        i++;
+        callbacks[i] = new CommunicationPart(nice,i+1);
+        nice.setComponentHandler(libnice.ComponentIndex.Component5,callbacks[i]);
 
-                final int index = compIndex;
-                callbacks[compIndex] = new libnice.ReceiveCallback() {
-                    @Override
-                    public void onMessage(byte[] buf) {
-
-                    }
-
-                    public void sendMessage(String s) {
-                        mNice.sendMsg(s,index);
-                    }
-                };
-
-            } else {
-                callbacks[compIndex] = new CommunicationPart(nice, compIndex);
-                nice.registerReceiveCallback(callbacks[compIndex], compIndex);
-            }
-        }
 
         // register a state Observer to catch stream/component state change
-        nice.registerStateObserver(new NiceStateObserver(nice));
+        nice.setOnStateChangeListener(new ServerOnStateChangeListener(nice));
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
@@ -159,7 +166,9 @@ public class P2PServerHelper extends Thread {
 
     private void setSocketIOAndConnect() throws URISyntaxException {
         try {
-            mSocket = IO.socket(DefaultSetting.serverUrl);
+            IO.Options opts = new IO.Options();
+            opts.forceNew=true;
+            mSocket = IO.socket(DefaultSetting.serverUrl,opts);
             mSocket.on("response", onResponse);
             mSocket.on("get sdp", onGetSdp);
             mSocket.on("restart stream", onRestartStream);
@@ -188,7 +197,7 @@ public class P2PServerHelper extends Thread {
     private Emitter.Listener onGetSdp = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
-
+            Log.d("P2PServerHelper","onGetSdp!!");
             JSONObject data = (JSONObject) args[0];
             String SDP;
             try {
@@ -252,75 +261,111 @@ public class P2PServerHelper extends Thread {
         }
     }
 
-    public class NiceStateObserver implements libnice.StateObserver {
+    public class ServerOnStateChangeListener implements libnice.OnStateChangeListener {
         private libnice mNice;
 
-        public NiceStateObserver(libnice nice) {
+        public ServerOnStateChangeListener(libnice nice) {
             mNice = nice;
         }
-        public void cbComponentStateChanged(final int stream_id, final int component_id,
-                                            final int state) {
-            Log.d("cbComponentState_s","Stream["+stream_id+"]["+component_id+"]:"+libnice.StateObserver.STATE_TABLE[state]);
-        }
-        public void cbCandidateGatheringDone(int stream_id) {
+
+        @Override
+        public void candiateGatheringDone() {
             localSdp= mNice.getLocalSdp();
-            mSocket.emit("add user", username==null?DefaultSetting.sourcePeerUsername:username);
             mSocket.emit("set local sdp",localSdp);
+        }
+
+        @Override
+        public void componentStateChanged(int componentId, String stateName) {
+            Log.d("componentStateChanged_s","Component["+componentId+"]:"+stateName);
         }
     }
 
     public void sendMessage(String mesg) {
-        //callbacks[MessageChannelNumber].sendMessage(mesg);
+        Log.d("P2PServerHelper","SendMesg:"+mesg);
+        ((CommunicationPart)callbacks[MessageChannelNumber]).sendMessage(mesg);
+        ByteBuffer bb = ByteBuffer.allocateDirect(1024);
+        ((CommunicationPart)callbacks[1]).sendData(bb,1024);
+//        ((CommunicationPart)callbacks[1]).sendMessage(new byte[1024].toString());
+
+
+
+    }
+
+    public static String byteArrayToHexString(byte[] b) {
+        int len = b.length;
+        String data = new String();
+
+        for (int i = 0; i < len; i++){
+            data += Integer.toHexString((b[i] >> 4) & 0xf);
+            data += Integer.toHexString(b[i] & 0xf);
+        }
+        return data;
     }
 
 
+    int W = 0;
+    int H = 0;
+    String mime = "";
+    String sps = "";
+    String pps = "";
+    long startTime = 0;
+    long firstTime = -1;
+
+    public void sendVideo() {
+        final MediaExtractor me = new MediaExtractor();
+        firstTime = -1;
+
+        try {
+//            me.setDataSource("/mnt/usbdisk/usbdisk3/fo-20000101_080611.mp4");
+            me.setDataSource("/mnt/usbdisk/usbdisk3/DemoPTZ.mp4");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        for (int i = 0; i < me.getTrackCount(); i++) {
+            MediaFormat format = me.getTrackFormat(i);
+            mime = format.getString(MediaFormat.KEY_MIME);
+            if (mime.startsWith("video/")) {
+                me.selectTrack(i);
+                W = format.getInteger(MediaFormat.KEY_WIDTH);
+                H = format.getInteger(MediaFormat.KEY_HEIGHT);
+                Log.d("HANK","WxH="+W+"x"+H);
+
+                ByteBuffer sps_bb = format.getByteBuffer("csd-0");
+                ByteBuffer pps_bb = format.getByteBuffer("csd-1");
+                sps = byteArrayToHexString(sps_bb.array());
+                pps = byteArrayToHexString(pps_bb.array());
+                break;
+            }
+        }
 
 
-//    public void createLocalVideoSendingThread(int Stream_id, int onChannel, String path) {
-//        showToast("D","create Local Video Sending Thread");
-//
-//        if (sendingThreads[onChannel - 1] == null) {
+        ((CommunicationPart)callbacks[1]).sendMessage("Video:"+mime+":"+W+":"+H+":"+sps+":"+pps+":");
+
+        ByteBuffer buf = ByteBuffer.allocateDirect(1024 * 1024* 2);
+        int size = 0;
+        while(true) {
+            size = 0;
+            buf.clear();
+            if(firstTime==-1) {
+                startTime = System.currentTimeMillis();
+
+                firstTime = me.getSampleTime()/1000;
+            }
 
 
-//            showToast("D","create Sending Thread");
-//            Log.d("hank", "Create sending Thread");
-//            sendingThreads[onChannel - 1] = new SendingLocalVideoThread(mNice, Stream_id, onChannel, path);
-//            sendingThreads[onChannel - 1].start();
-//        }
-//    }
-//
-//    public void createLiveViewSendingThread(int Stream_id, int onChannel, String ip) {
-//        if (sendingLiveThreads[onChannel - 1] == null) {
-//            showToast("D","create live view thread");
-//            sendingLiveThreads[onChannel - 1] = new SendingLiveViewThread(mNice, Stream_id, onChannel, ip);
-//            sendingLiveThreads[onChannel - 1].start();
-//        }
-//    }
-//
-//    public void stopSendingThread(int Stream_id, int onChannel) {
-//        if (sendingThreads[onChannel - 1] != null) {
-//            sendingThreads[onChannel - 1].setStop();
-//            sendingThreads[onChannel - 1].interrupt();
-//            try {
-//                sendingThreads[onChannel - 1].join();
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//            sendingThreads[onChannel - 1] = null;
-//            showToast("D","Stop sending Thread " + onChannel);
-//
-//        }
-//
-//        if (sendingLiveThreads[onChannel - 1] != null) {
-//            sendingLiveThreads[onChannel - 1].setStop();
-//            sendingLiveThreads[onChannel - 1].interrupt();
-//            try {
-//                sendingLiveThreads[onChannel - 1].join();
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//            sendingLiveThreads[onChannel - 1] = null;
-//            showToast("D","Stop sending Thread " + onChannel);
-//        }
-//    }
+            size = me.readSampleData(buf, 0);
+            if (size > 0) {
+                ((CommunicationPart) callbacks[1]).sendData(buf,size);
+                try {
+                    sleep(30);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                me.advance();
+            } else {
+                me.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
+            }
+        }
+    }
+
 }

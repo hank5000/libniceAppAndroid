@@ -2,6 +2,7 @@ package com.via.p2pclienthelper;
 
 import android.content.Context;
 import android.util.Log;
+import android.view.SurfaceView;
 import android.widget.Toast;
 
 import com.github.nkzawa.emitter.Emitter;
@@ -25,15 +26,26 @@ public class P2PClientHelper extends Thread {
     String localSdp = "";
     Context application_ctx = null;
     private Socket mSocket;
-    CommunicationPart[] cps = new CommunicationPart[6];
+    libnice.ComponentListener[] componentListeners = new libnice.ComponentListener[5];
+    SurfaceView[] surfaceViews = null;
 
     private String username = null;
     private String password = null;
 
     boolean bReadyToPairing = false;
+    final int MessageChannelNumber = 0;
 
+    public void setSurfaceViews(SurfaceView[] svs) {
+        surfaceViews = svs;
+
+    }
 
     public void release() {
+        if(mSocket!=null) {
+            mSocket.disconnect();
+            mSocket.close();
+            mSocket=null;
+        }
         bReadyToPairing = false;
         stopAllProcess();
         if(mNice!=null) {
@@ -98,25 +110,35 @@ public class P2PClientHelper extends Thread {
         int controllMode = 0;
         nice.setControllingMode(controllMode);
         String streamName = "P2PStream";
-        int numberOfComponent = 5;
-        // TODO: return stream id
 		/*
 			ret = 0 => Fail.
 				= 1 => Success.
 				= 2 => It has been added.
 		 */
-        if(nice.addStream(streamName,numberOfComponent)!=1) {
+        if(nice.addStream(streamName)!=1) {
             return false;
         }
 
 //         register a receive Observer to get byte array from jni side to java side.
-        for(int compIndex=1;compIndex<=5;compIndex++) {
-            cps[compIndex] = new CommunicationPart(nice, compIndex);
-            nice.registerReceiveCallback(cps[compIndex],compIndex);
-        }
+        int i = 0;
+        componentListeners[i] = new CommunicationPart(nice,i+1);
+        nice.setComponentHandler(libnice.ComponentIndex.Component1,componentListeners[i]);
+        i++;
+        componentListeners[i] = new VideoRecvCallback(surfaceViews[0]);
+        nice.setComponentHandler(libnice.ComponentIndex.Component2,componentListeners[i]);
+        i++;
+        componentListeners[i] = new VideoRecvCallback(surfaceViews[0]);
+        nice.setComponentHandler(libnice.ComponentIndex.Component3,componentListeners[i]);
+        i++;
+        componentListeners[i] = new VideoRecvCallback(surfaceViews[0]);
+        nice.setComponentHandler(libnice.ComponentIndex.Component4,componentListeners[i]);
+        i++;
+        componentListeners[i] = new VideoRecvCallback(surfaceViews[0]);
+        nice.setComponentHandler(libnice.ComponentIndex.Component5,componentListeners[i]);
+
 
         // register a state Observer to catch stream/component state change
-        nice.registerStateObserver(new NiceStateObserver(nice));
+        nice.setOnStateChangeListener(new NiceStateObserver(nice));
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
@@ -148,7 +170,9 @@ public class P2PClientHelper extends Thread {
 
     private void setSocketIOAndConnect() throws URISyntaxException {
         try {
-            mSocket = IO.socket(DefaultSetting.serverUrl);
+            IO.Options opts = new IO.Options();
+            opts.forceNew=true;
+            mSocket = IO.socket(DefaultSetting.serverUrl,opts);
             mSocket.on("response", onResponse);
             mSocket.on("get sdp", onGetSdp);
             mSocket.on("restart stream", onRestartStream);
@@ -177,7 +201,7 @@ public class P2PClientHelper extends Thread {
     private Emitter.Listener onGetSdp = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
-
+            Log.d("P2PClientHelper","onGetSdp!!");
             JSONObject data = (JSONObject) args[0];
             String SDP;
             try {
@@ -210,10 +234,13 @@ public class P2PClientHelper extends Thread {
     }
 
     public void pairing() {
+        Log.d("P2PClientHelper","Pairing!!");
         mSocket.emit("get remote sdp",username+":"+localSdp);
     }
 
-
+    public void triggerSocketio() {
+        mSocket.emit("trigger","abcd");
+    }
 
     public void setContext(Context app_ctx) {
         application_ctx = app_ctx;
@@ -246,22 +273,29 @@ public class P2PClientHelper extends Thread {
         mNice.setRemoteSdp(sdp);
     }
 
-    public class NiceStateObserver implements libnice.StateObserver {
+    public class NiceStateObserver implements libnice.OnStateChangeListener {
         private libnice mNice;
 
         public NiceStateObserver(libnice nice) {
             mNice = nice;
         }
-        public void cbComponentStateChanged(final int stream_id, final int component_id,
-                                            final int state) {
-            Log.d("cbComponentState_c","Stream["+stream_id+"]["+component_id+"]:"+libnice.StateObserver.STATE_TABLE[state]);
-        }
-        public void cbCandidateGatheringDone(int stream_id) {
+
+        @Override
+        public void candiateGatheringDone() {
             localSdp= mNice.getLocalSdp();
             bReadyToPairing = true;
-//            mSocket.emit("add user", username==null?DefaultSetting.sourcePeerUsername:username);
-//            mSocket.emit("set local sdp",localSdp);
         }
+
+        @Override
+        public void componentStateChanged(int componentId, String stateName) {
+            Log.d("componentStateChanged_c","Component["+componentId+"]:"+stateName);
+        }
+
+    }
+
+    public void sendMessage(String msg) {
+        Log.d("P2PClientHelper","SendMesg:"+msg);
+        ((CommunicationPart)componentListeners[MessageChannelNumber]).sendMessage(msg);
     }
 
 }

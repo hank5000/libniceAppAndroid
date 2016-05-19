@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.KeyEvent;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -29,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
 
     boolean bLocalPairMode = false;
 
+    SurfaceView[] surfaceViews = null;
+    int surfaceViewNumber = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +46,11 @@ public class MainActivity extends AppCompatActivity {
 
         editText_s = (EditText) findViewById(R.id.editText_s);
         editText_c = (EditText) findViewById(R.id.editText_c);
+
+
+        surfaceViews = new SurfaceView[surfaceViewNumber];
+        surfaceViews[0] = (SurfaceView)findViewById(R.id.surfaceView);
+
 
 
         editText_s.setOnKeyListener(new View.OnKeyListener() {
@@ -63,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
             public boolean onKey(View view, int keyCode, KeyEvent keyEvent) {
                 if ((keyEvent.getAction() == KeyEvent.ACTION_DOWN) &&
                         (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                    String s = editText_s.getText().toString();
-                    //client.sendMessage(s);
+                    String s = editText_c.getText().toString();
+                    client.sendMessage(s);
                     // Perform action on key press
                     return true;
                 }
@@ -101,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     if(client==null) client = new P2PClientHelper(null);
                     client.setUsername(DefaultSetting.sourcePeerUsername);
+                    client.setSurfaceViews(surfaceViews);
                     client.prepare();
                     client.start();
                 } catch (URISyntaxException e) {
@@ -129,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
                             client.setSDP(sdp_s);
                         } else {
                             client.pairing();
+//                            server.sendVideo();
                         }
 
                     }
@@ -136,6 +147,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        ((Button) findViewById(R.id.videobtn)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(server!=null) new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        server.sendVideo();
+                    }
+                }).start();
+            }
+        });
 
     }
 }

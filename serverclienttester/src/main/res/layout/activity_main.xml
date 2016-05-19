@@ -80,4 +80,19 @@
         android:layout_below="@+id/editText_s"
         android:layout_alignParentEnd="true" />
 
+    <SurfaceView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/surfaceView"
+        android:layout_below="@+id/editText_c"
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="VIDEO"
+        android:id="@+id/videobtn"
+        android:layout_below="@+id/editText_s"
+        android:layout_alignParentStart="true" />
+
 </RelativeLayout>

@@ -7,7 +7,7 @@ import com.via.p2p.libnice;
 
 import java.nio.ByteBuffer;
 
-public class CommunicationPart implements libnice.ReceiveCallback {
+public class CommunicationPart implements libnice.ComponentListener {
 	int COMMUNICATION_COMPONENT_ID = -1;
 	libnice mNice = null;
 	String loggingMessage = "";
@@ -19,7 +19,8 @@ public class CommunicationPart implements libnice.ReceiveCallback {
 
 	public void onMessage(byte[] buf) {
 		String tmp = new String(buf);
-		Log.d("Server", tmp);
+		Log.d("p2pServerHelper", "onMessage:"+tmp);
+
 		loggingMessage += tmp + "\n";
 	}
 
@@ -27,5 +28,11 @@ public class CommunicationPart implements libnice.ReceiveCallback {
 		mNice.sendMsg(msg, COMMUNICATION_COMPONENT_ID);
 	}
 
-	public void sendData(byte[] bytes) { mNice.sendDataDirect(ByteBuffer.wrap(bytes),bytes.length,COMMUNICATION_COMPONENT_ID);}
+	public void sendData(byte[] bytes) {
+		mNice.sendData(bytes,bytes.length,COMMUNICATION_COMPONENT_ID);
+	}
+
+	public void sendData(ByteBuffer bb,int lenght) {
+		mNice.sendDataDirect(bb,lenght,COMMUNICATION_COMPONENT_ID);
+	}
 }

@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.via.p2p.libnice;
 
-public class CommunicationPart implements libnice.ReceiveCallback {
+public class CommunicationPart implements libnice.ComponentListener {
 	int COMMUNICATION_COMPONENT_ID = -1;
 	libnice mNice = null;
 	String loggingMessage = "";
@@ -17,7 +17,7 @@ public class CommunicationPart implements libnice.ReceiveCallback {
 
 	public void onMessage(byte[] buf) {
 		String tmp = new String(buf);
-		Log.d("Client", tmp);
+		Log.d("p2pClientHelper", "onMessage:"+tmp);
 
 		loggingMessage += tmp + "\n";
 	}

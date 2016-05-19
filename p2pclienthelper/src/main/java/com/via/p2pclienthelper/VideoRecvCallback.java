@@ -16,7 +16,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.Random;
 
-public class VideoRecvCallback implements libnice.ReceiveCallback {
+public class VideoRecvCallback implements libnice.ComponentListener {
 	
 	boolean bVideo = false;
 	int w = 0;
@@ -39,6 +39,10 @@ public class VideoRecvCallback implements libnice.ReceiveCallback {
     public VideoRecvCallback(SurfaceView sv) {
     	videosv = sv;
     }
+
+    public void setSurfaceView(SurfaceView sv) {
+        videosv = sv;
+    }
     
     private void LOGD(String msg) {
     	Log.d(TAG,msg);
@@ -47,7 +51,7 @@ public class VideoRecvCallback implements libnice.ReceiveCallback {
     public void onMessage(byte[] msg) {
     	
 		if(!bVideo) {
-			//LOGD("not video");
+			LOGD("not video");
 			String tmp = new String(msg);
 			if(tmp.startsWith("Video")) {
 				bVideo = true;
@@ -76,10 +80,10 @@ public class VideoRecvCallback implements libnice.ReceiveCallback {
                 mReceiver = new LocalSocket();
                 try {
                     mReceiver.connect(new LocalSocketAddress(LOCAL_ADDR + mSocketId));
-                    mReceiver.setReceiveBufferSize(100000);
+                    mReceiver.setReceiveBufferSize(1024*1024*3);
                     mReceiver.setSoTimeout(2000);
                     mSender = mLss.accept();
-                    mSender.setSendBufferSize(100000);
+                    mSender.setSendBufferSize(1024*1024*3);
                 } catch (IOException e) {
                     LOGD("fail to create mSender mReceiver :" + e);
                     e.printStackTrace();
@@ -98,7 +102,6 @@ public class VideoRecvCallback implements libnice.ReceiveCallback {
 			}
 			LOGD(tmp);
 		} else {
-
 			try {
 				writableByteChannel.write(ByteBuffer.wrap(msg));
 			} catch (IOException e) {
