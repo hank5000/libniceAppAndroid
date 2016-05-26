@@ -68,7 +68,6 @@ public class libnice {
 		debug = b;
 	}
 
-
 	private Thread mainLoopThread = new Thread(new Runnable(){
 		public void run() {
 			// Just use it to run gloop
@@ -163,19 +162,19 @@ public class libnice {
 		setRemoteSdpNative(agentCtxHandle,remoteSdp,remoteSdp.length());
 	}
 
-	public void sendData(byte[] buf, int len, int compId) {
-		debugMessage("sendData:Length="+len+",Component:"+compId);
-		sendDataNative(agentCtxHandle,buf,len,streamId,compId);
-	}
+//	public void sendData(byte[] buf, int len, int compId) {
+//		debugMessage("sendData:Length="+len+",Component:"+compId);
+//		sendDataNative(agentCtxHandle,buf,len,streamId,compId);
+//	}
 
-	public void sendDataDirect(ByteBuffer buf, int len, int compId) {
+	public int sendDataDirect(ByteBuffer buf, int len, int compId) {
 		debugMessage("sendDataDirect:Length="+len+",Component:"+compId);
-		sendDataDirectNative(agentCtxHandle,buf,len,streamId,compId);
+		return sendDataDirectNative(agentCtxHandle,buf,len,streamId,compId);
 	}
 
-	public void sendMsg(String msg, int compId) {
+	public int sendMsg(String msg, int compId) {
 		debugMessage("sendMsg:msg="+msg+",Component:"+compId);
-		sendMsgNative(agentCtxHandle,msg,streamId,compId);
+		return sendMsgNative(agentCtxHandle,msg,streamId,compId);
 	}
 
     private void registerReceiveCallback(libnice.ReceiveCallback obs, int compId) {
@@ -204,8 +203,6 @@ public class libnice {
 			Log.d(TAG,s);
 		}
 	}
-
-    private ReceiveObserver[] receiveObservers = new ReceiveObserver[MAX_COMPONENT];
 
 	public class Parameter {
 		private boolean useReliable = false;
@@ -264,24 +261,6 @@ public class libnice {
         }
     }
 
-	private StateObserver stateObserver = new StateObserver() {
-		@Override
-		public void cbCandidateGatheringDone(int stream_id) {
-			debugMessage("cbCandidateGatheringDone");
-            if(onStateChangeListener!=null) {
-                onStateChangeListener.candiateGatheringDone();
-            }
-		}
-
-		@Override
-		public void cbComponentStateChanged(int stream_id, int component_id, int state) {
-			debugMessage("cbComponentStateChanged,["+component_id+"]:"+stateObserver.STATE_TABLE[state]);
-            if(onStateChangeListener!=null) {
-                onStateChangeListener.componentStateChanged(component_id,stateObserver.STATE_TABLE[state]);
-            }
-		}
-	};
-
 	private class ReceiveObserver implements ReceiveCallback {
 		int mComponentIndex;
 		ReceiveObserver(int componentIndex) {
@@ -297,24 +276,27 @@ public class libnice {
 		}
 	}
 
-    private ComponentListener[] componentListeners = new ComponentListener[MAX_COMPONENT];
-
-	public interface ComponentListener {
-        void onMessage(byte[] bytes);
-	}
-
-	public interface OnStateChangeListener {
-        void candiateGatheringDone();
-        void componentStateChanged(int componentId,String stateName);
-	}
-
-    private OnStateChangeListener onStateChangeListener = null;
-
     private void registerNativeCallbackToJava() {
         for(int compIndex=0;compIndex<5;compIndex++) {
             this.registerReceiveCallback(new ReceiveObserver(compIndex), compIndex+1);
         }
-        this.registerStateObserver(stateObserver);
+        this.registerStateObserver(new StateObserver() {
+			@Override
+			public void cbCandidateGatheringDone(int stream_id) {
+				debugMessage("cbCandidateGatheringDone");
+				if(onStateChangeListener!=null) {
+					onStateChangeListener.candiateGatheringDone();
+				}
+			}
+
+			@Override
+			public void cbComponentStateChanged(int stream_id, int component_id, int state) {
+				debugMessage("cbComponentStateChanged,["+component_id+"]:"+StateObserver.STATE_TABLE[state]);
+				if(onStateChangeListener!=null) {
+					onStateChangeListener.componentStateChanged(component_id,StateObserver.STATE_TABLE[state]);
+				}
+			}
+		});
     }
 
     public void createByDefault() throws Exception {
@@ -344,6 +326,20 @@ public class libnice {
             return index;
         }
     }
+
+
+	// register for user
+	private ComponentListener[] componentListeners = new ComponentListener[MAX_COMPONENT];
+	private OnStateChangeListener onStateChangeListener = null;
+
+	public interface ComponentListener {
+		void onMessage(byte[] bytes);
+	}
+
+	public interface OnStateChangeListener {
+		void candiateGatheringDone();
+		void componentStateChanged(int componentId,String stateName);
+	}
 
     public void setOnStateChangeListener(OnStateChangeListener listener) {
         this.onStateChangeListener = listener;

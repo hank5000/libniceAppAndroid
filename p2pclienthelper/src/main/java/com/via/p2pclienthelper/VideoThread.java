@@ -1,7 +1,9 @@
 package com.via.p2pclienthelper;
 
+import android.annotation.TargetApi;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.os.Build;
 import android.util.Log;
 import android.view.Surface;
 
@@ -15,8 +17,8 @@ public class VideoThread extends Thread {
     final static String TAG = "libnice-vt";
 
     byte[] inputStreamTmp = new byte[1024*1024*2];
-    ByteBuffer rawDataCollectBuffer = ByteBuffer.allocate(1024*1024*10);
-    byte[] dst  = new byte[1024*1024];
+    ByteBuffer rawDataCollectBuffer = ByteBuffer.allocate(1024*1024*20);
+    byte[] dst  = new byte[1024*1024*2];
     private MediaCodec decoder;
     private Surface surface;
     private InputStream is;
@@ -57,9 +59,8 @@ public class VideoThread extends Thread {
 
     final static String MediaFormat_SPS = "csd-0";
     final static String MediaFormat_PPS = "csd-1";
-
+    @TargetApi(21)
     public void run() {
-        Log.d("HANK","111");
         /// Create Decoder -START- ///
         try {
             MediaFormat format = new MediaFormat();
@@ -68,8 +69,6 @@ public class VideoThread extends Thread {
             format.setInteger(MediaFormat.KEY_HEIGHT, mHeight);
             format.setByteBuffer(MediaFormat_SPS, ByteBuffer.wrap(hexStringToByteArray(mSPS)));
             format.setByteBuffer(MediaFormat_PPS, ByteBuffer.wrap(hexStringToByteArray(mPPS)));
-
-            Log.d("HANK","222");
 
             decoder = MediaCodec.createDecoderByType(mMime);
             if(decoder == null) {
@@ -86,8 +85,16 @@ public class VideoThread extends Thread {
         }
         decoder.start();
         /// Create Decoder -END- ///
-        ByteBuffer[] inputBuffers = decoder.getInputBuffers();
-        ByteBuffer[] outputBuffers = decoder.getOutputBuffers();
+
+
+        ByteBuffer[] inputBuffers = null;
+        ByteBuffer[] outputBuffers = null;
+
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+            outputBuffers = decoder.getOutputBuffers();
+            inputBuffers = decoder.getInputBuffers();
+        }
+
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 
         /// Decode -START- ///
@@ -111,36 +118,41 @@ public class VideoThread extends Thread {
                             rawDataCollectBuffer.put(inputStreamTmp, 0, readSize);
                         }
                     } catch (Exception e) {
-                        Log.d(TAG,"inputstream cannot read : "+e);
-
                         if(!bStart) {
                             break;
                         }
                     }
 
                     firstNalu = findNalu(0,rawDataCollectBuffer);
-                    
+
                     //Log.d(TAG,"firstNalue : "+ firstNalu +"rawDataCollectBuffer :" +rawDataCollectBuffer.get(0)+rawDataCollectBuffer.get(1)+rawDataCollectBuffer.get(2)+rawDataCollectBuffer.get(3));
 
                     if(firstNalu!=-1) {
-                    	secondNalu = findNalu(firstNalu+3,rawDataCollectBuffer);
+
+                        secondNalu = findNalu(firstNalu+3,rawDataCollectBuffer);
 
                     	if(secondNalu!=-1 && secondNalu > firstNalu ) {
-                    		rawDataCollectBuffer.flip();
+
+                            rawDataCollectBuffer.flip();
                     		rawDataCollectBuffer.position(firstNalu);
-                    		
+
                         	//Log.d(TAG,"FirstNALU :"+firstNalu+" ,SecondNALU :"+secondNalu+"size :"+ (secondNalu-firstNalu)+", rawDataCollectBuffer remaining:"+rawDataCollectBuffer.remaining());
 
                     		rawDataCollectBuffer.get(dst, 0, secondNalu-firstNalu);
                     		rawDataCollectBuffer.compact();
-                    		
+
                     		int nalu_unit_type = (dst[4] & 0x1F);
                     		//if(nalu_unit_type!=8 && nalu_unit_type!=7 && nalu_unit_type!=6)
                     		{
-	                    		ByteBuffer buffer = inputBuffers[inIndex];
+	                    		ByteBuffer buffer = null;
+                                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP) {
+                                    buffer = inputBuffers[inIndex];
+                                } else {
+                                    buffer = decoder.getInputBuffer(inIndex);
+                                }
 	                    		buffer.clear();
 	                    		buffer.put(dst, 0, secondNalu-firstNalu);
-	                    		decoder.queueInputBuffer(inIndex, 0, secondNalu-firstNalu, 0, 0);
+                                decoder.queueInputBuffer(inIndex, 0, secondNalu-firstNalu, 0, 0);
 	                    		break;
                     		}
                     	}
@@ -184,7 +196,7 @@ public class VideoThread extends Thread {
                 switch (outIndex) {
                     case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
 //                        Log.d("libnice", "INFO_OUTPUT_BUFFERS_CHANGED");
-                        this.outputBuffers = this.decoder.getOutputBuffers();
+                        //this.outputBuffers = this.decoder.getOutputBuffers();
                         break;
                     case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
 //                        Log.d("libnice", "New format " + decoder.getOutputFormat());
@@ -194,7 +206,7 @@ public class VideoThread extends Thread {
 //                        Log.d("DecodeActivity", "dequeueOutputBuffer timed out!");
                         break;
                     default:
-                        // ByteBuffer buffer = outputBuffers[outIndex];
+//                         ByteBuffer buffer = outputBuffers[outIndex];
 //                      Log.v("DecodeActivity", "We can't use this buffer but render it due to the API limit, " );
                         //Log.d("libnice", "coming2");
                         this.decoder.releaseOutputBuffer(outIndex, true);

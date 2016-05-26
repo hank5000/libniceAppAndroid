@@ -33,7 +33,7 @@ public class P2PClientHelper extends Thread {
     private String password = null;
 
     boolean bReadyToPairing = false;
-    final int MessageChannelNumber = 0;
+    final int MessageChannelNumber = 4;
 
     public void setSurfaceViews(SurfaceView[] svs) {
         surfaceViews = svs;
@@ -100,7 +100,7 @@ public class P2PClientHelper extends Thread {
 			If useReliable = 1, the libnice will send the few small packages which is separated by user giving package
 						   = 0, the libnice will send the original package.
 		 */
-        int useReliable = 0;
+        int useReliable = 1;
         nice.createAgent(useReliable);
         nice.setStunAddress(DefaultSetting.stunServerIp[1], DefaultSetting.stunServerPort[1]);
 		/*
@@ -121,19 +121,23 @@ public class P2PClientHelper extends Thread {
 
 //         register a receive Observer to get byte array from jni side to java side.
         int i = 0;
-        componentListeners[i] = new CommunicationPart(nice,i+1);
+        componentListeners[i] = new VideoRecvCallback(surfaceViews[0]);
         nice.setComponentHandler(libnice.ComponentIndex.Component1,componentListeners[i]);
+
         i++;
         componentListeners[i] = new VideoRecvCallback(surfaceViews[0]);
         nice.setComponentHandler(libnice.ComponentIndex.Component2,componentListeners[i]);
+
         i++;
         componentListeners[i] = new VideoRecvCallback(surfaceViews[0]);
         nice.setComponentHandler(libnice.ComponentIndex.Component3,componentListeners[i]);
+
         i++;
         componentListeners[i] = new VideoRecvCallback(surfaceViews[0]);
         nice.setComponentHandler(libnice.ComponentIndex.Component4,componentListeners[i]);
+
         i++;
-        componentListeners[i] = new VideoRecvCallback(surfaceViews[0]);
+        componentListeners[i] = new CommunicationPart(nice,i+1);
         nice.setComponentHandler(libnice.ComponentIndex.Component5,componentListeners[i]);
 
 

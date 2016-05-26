@@ -15,3 +15,24 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+-keep class com.via.p2p.libnice {
+    public *;
+}
+
+-keep class com.via.p2p.libnice$* {
+    public *;
+}
+
+-keepclasseswithmembernames,includedescriptorclasses class * {
+    native <methods>;
+}
+
+-keep public interface com.via.p2p.libnice$ComponentListener {*;}
+-keep public interface com.via.p2p.libnice$OnStateChangeListener {*;}
+-keep class com.via.p2p.libnice$ReceiveObserver{ public *; }
+
+-keep public enum com.via.p2p.libnice$ComponentIndex {*;}
+-keep class com.via.p2p.DefaultSetting {public *;}
+
+-keepattributes InnerClasses
+-keepattributes Exceptions

@@ -8,6 +8,10 @@ import android.view.SurfaceView;
 
 import com.via.p2p.libnice;
 
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,6 +42,11 @@ public class VideoRecvCallback implements libnice.ComponentListener {
     final static String TAG = "VideoRecvCallback";
     public VideoRecvCallback(SurfaceView sv) {
     	videosv = sv;
+//        try {
+//            dos = new DataOutputStream(new FileOutputStream("/mnt/usbdisk/usbdisk2/hank.264"));
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public void setSurfaceView(SurfaceView sv) {
@@ -47,6 +56,10 @@ public class VideoRecvCallback implements libnice.ComponentListener {
     private void LOGD(String msg) {
     	Log.d(TAG,msg);
     }
+
+    File f = null;
+    FileOutputStream fos = null;
+    DataOutputStream dos = null;
 
     public void onMessage(byte[] msg) {
     	
@@ -80,10 +93,10 @@ public class VideoRecvCallback implements libnice.ComponentListener {
                 mReceiver = new LocalSocket();
                 try {
                     mReceiver.connect(new LocalSocketAddress(LOCAL_ADDR + mSocketId));
-                    mReceiver.setReceiveBufferSize(1024*1024*3);
-                    mReceiver.setSoTimeout(2000);
+                    mReceiver.setReceiveBufferSize(1024*1024*10);
+                    mReceiver.setSoTimeout(100);
                     mSender = mLss.accept();
-                    mSender.setSendBufferSize(1024*1024*3);
+                    mSender.setSendBufferSize(1024*1024);
                 } catch (IOException e) {
                     LOGD("fail to create mSender mReceiver :" + e);
                     e.printStackTrace();
@@ -98,11 +111,18 @@ public class VideoRecvCallback implements libnice.ComponentListener {
                 }
                 
                 vt = new VideoThread(videosv.getHolder().getSurface(),mime, w,h,sps,pps,is);
+                vt.setPriority(Thread.MAX_PRIORITY);
                 vt.start();
 			}
-			LOGD(tmp);
+//			LOGD(tmp);
 		} else {
 			try {
+//                if(bFirst) {
+//                    bFirst = false;
+//                    dos.write(hexStringToByteArray(sps));
+//                    dos.write(hexStringToByteArray(pps));
+//                }
+//                dos.write(msg);
 				writableByteChannel.write(ByteBuffer.wrap(msg));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -110,5 +130,16 @@ public class VideoRecvCallback implements libnice.ComponentListener {
 			}
 		}
 	}
+    boolean bFirst = true;
+
+    public byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
+    }
 
 }

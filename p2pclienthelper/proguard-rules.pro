@@ -15,3 +15,22 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-keep class com.via.p2pclienthelper.P2PClientHelper {
+    public *;
+}
+
+-keep class com.via.p2pclienthelper.CommunicationPart {
+    public *;
+}
+
+-keep class com.via.p2pclienthelper.VideoThread {
+    public *;
+}
+
+-keep class com.via.p2pclienthelper.VideoRecvCallback {
+    public *;
+}
+
+-keepattributes InnerClasses
+-keepattributes Exceptions

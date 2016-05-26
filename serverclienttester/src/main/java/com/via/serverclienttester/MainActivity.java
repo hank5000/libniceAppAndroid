@@ -1,7 +1,7 @@
 package com.via.serverclienttester;
 
+import android.app.Activity;
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.SurfaceView;
@@ -15,7 +15,7 @@ import com.via.p2pserverhelper.P2PServerHelper;
 
 import java.net.URISyntaxException;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
     P2PClientHelper client = null;
     P2PServerHelper server = null;
     Context c = this;
@@ -86,10 +86,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 try {
-                    if(server==null) server = new P2PServerHelper(null);
+                    if(server!=null) {
+                        server.release();
+                        server = null;
+                    }
+
+                    server = new P2PServerHelper(null);
                     server.setUsername(DefaultSetting.sourcePeerUsername);
                     server.prepare();
                     server.start();
+
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 }
@@ -108,7 +114,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 try {
-                    if(client==null) client = new P2PClientHelper(null);
+                    if(client!=null) {
+                        client.release();
+                        client = null;
+                    }
+                    client = new P2PClientHelper(null);
                     client.setUsername(DefaultSetting.sourcePeerUsername);
                     client.setSurfaceViews(surfaceViews);
                     client.prepare();

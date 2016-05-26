@@ -36,12 +36,6 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 p2PServerHelper.reset();
-//                if(p2PServerHelper!=null && p2pThread2!=null) {
-//                    String sdp1 = p2PServerHelper.getSDP();
-//                    String sdp2 = p2pThread2.getSDP();
-//                    p2PServerHelper.setSDP(sdp2);
-//                    p2pThread2.setSDP(sdp1);
-//                }
             }
         });
 

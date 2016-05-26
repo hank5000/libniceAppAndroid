@@ -29,13 +29,12 @@ public class P2PServerHelper extends Thread {
     String localSdp = "";
     Context application_ctx = null;
     private Socket mSocket = null;
-    CommunicationPart[] cps = new CommunicationPart[6];
     libnice.ComponentListener[] callbacks = new libnice.ComponentListener[5];
 
     private String username = null;
     private String password = null;
 
-    final int MessageChannelNumber = 0;
+    final int MessageChannelNumber = 4;
 
     public void release() {
         if(mSocket!=null) {
@@ -95,7 +94,7 @@ public class P2PServerHelper extends Thread {
 			If useReliable = 1, the libnice will send the few small packages which is separated by user giving package
 						   = 0, the libnice will send the original package.
 		 */
-        int useReliable = 0;
+        int useReliable = 1;
         nice.createAgent(useReliable);
         nice.setStunAddress(DefaultSetting.stunServerIp[1], DefaultSetting.stunServerPort[1]);
 		/*
@@ -283,12 +282,6 @@ public class P2PServerHelper extends Thread {
     public void sendMessage(String mesg) {
         Log.d("P2PServerHelper","SendMesg:"+mesg);
         ((CommunicationPart)callbacks[MessageChannelNumber]).sendMessage(mesg);
-        ByteBuffer bb = ByteBuffer.allocateDirect(1024);
-        ((CommunicationPart)callbacks[1]).sendData(bb,1024);
-//        ((CommunicationPart)callbacks[1]).sendMessage(new byte[1024].toString());
-
-
-
     }
 
     public static String byteArrayToHexString(byte[] b) {
@@ -303,6 +296,7 @@ public class P2PServerHelper extends Thread {
     }
 
 
+
     int W = 0;
     int H = 0;
     String mime = "";
@@ -310,14 +304,19 @@ public class P2PServerHelper extends Thread {
     String pps = "";
     long startTime = 0;
     long firstTime = -1;
+    final private int splitSize = 5000;
+    boolean bSplitPackageMode = true;
+    byte[] sps_b = null;
+    byte[] pps_b = null;
+
 
     public void sendVideo() {
         final MediaExtractor me = new MediaExtractor();
         firstTime = -1;
 
         try {
-//            me.setDataSource("/mnt/usbdisk/usbdisk3/fo-20000101_080611.mp4");
-            me.setDataSource("/mnt/usbdisk/usbdisk3/DemoPTZ.mp4");
+//            me.setDataSource("/mnt/usbdisk/usbdisk2/fo-20000101_080611.mp4");
+            me.setDataSource("/sdcard/Download/DemoPTZ.mp4");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -332,6 +331,7 @@ public class P2PServerHelper extends Thread {
 
                 ByteBuffer sps_bb = format.getByteBuffer("csd-0");
                 ByteBuffer pps_bb = format.getByteBuffer("csd-1");
+
                 sps = byteArrayToHexString(sps_bb.array());
                 pps = byteArrayToHexString(pps_bb.array());
                 break;
@@ -339,33 +339,69 @@ public class P2PServerHelper extends Thread {
         }
 
 
-        ((CommunicationPart)callbacks[1]).sendMessage("Video:"+mime+":"+W+":"+H+":"+sps+":"+pps+":");
+        while(-1==((CommunicationPart)callbacks[0]).sendMessage("Video:"+mime+":"+W+":"+H+":"+sps+":"+pps+":")) {
+            Log.d("HANK","Sending again!!!!");
+        }
+
+        try {
+            sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         ByteBuffer buf = ByteBuffer.allocateDirect(1024 * 1024* 2);
         int size = 0;
+
         while(true) {
             size = 0;
             buf.clear();
             if(firstTime==-1) {
                 startTime = System.currentTimeMillis();
-
                 firstTime = me.getSampleTime()/1000;
             }
 
 
-            size = me.readSampleData(buf, 0);
-            if (size > 0) {
-                ((CommunicationPart) callbacks[1]).sendData(buf,size);
-                try {
-                    sleep(30);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            size = me.readSampleData(buf,0);
+            if(size>0) {
+                if ((System.currentTimeMillis() - startTime) > (me.getSampleTime() / 1000 - firstTime)) {
+                    if(isImportantFrame(buf)) {
+                        ((CommunicationPart) callbacks[0]).sendDataReliableWithTimeout(buf, size, 9999);
+                    } else {
+                        ((CommunicationPart) callbacks[0]).sendDataReliableWithTimeout(buf, size, 300);
+                    }
+                    me.advance();
                 }
-                me.advance();
             } else {
-                me.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
+                me.seekTo(0,MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
             }
         }
+    }
+
+    private int getBit(Byte b,int index) {
+        if((b&(1<<index))!=0) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    private boolean isImportantFrame(ByteBuffer b) {
+        //IDR SPS PPS
+        if((b.get(4) & 0X1F)==5 && (b.get(4) & 0X1F)==7 && (b.get(4) & 0X1F)==8) {
+            return true;
+        }
+        //SLICE => get slice type
+        if((b.get(4) & 0X1F)==1) {
+//            int j = 5;
+//            int zeroCounter = 0;
+//            for(int i=0;i<8;i++) {
+//                if(getBit(b.get(j), 0)==0) {
+//                    zeroCounter++;
+//                }
+//            }
+
+        }
+        return false;
     }
 
 }
