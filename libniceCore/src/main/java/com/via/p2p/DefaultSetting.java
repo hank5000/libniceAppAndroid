@@ -5,7 +5,7 @@ package com.via.p2p;
  */
 public class DefaultSetting {
     final static int reliableMode = 0;
-    final static public String WTAG = "VIA-CloudWatch/W";
+    final static public String WTAG = "CloudWatch/W";
     // register server / signaling server
     public final static String serverUrl = "http://122.147.15.220:3000/";
     // stun server

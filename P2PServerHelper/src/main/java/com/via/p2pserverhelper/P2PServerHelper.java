@@ -24,7 +24,7 @@ import java.nio.ByteBuffer;
  */
 public class P2PServerHelper extends Thread {
     libnice mNice;
-    String TAG = "P2PServerHelper";
+    final static String TAG = "P2PServerHelper";
     String remoteSdp = "";
     String localSdp = "";
     Context application_ctx = null;
@@ -60,7 +60,7 @@ public class P2PServerHelper extends Thread {
     public void prepare() {
         mNice = new libnice();
         if(initNice(mNice)) {
-            Log.d("HANK","Init libnice success!!");
+            Log.d(TAG,"Init libnice success!!");
             mSocket.emit("add user", username);
 
         }
@@ -248,13 +248,13 @@ public class P2PServerHelper extends Thread {
     public void showToast(String level, final String tmp) {
 
         if(level.equalsIgnoreCase("D") && DefaultSetting.printLevelD) {
-            Log.d(DefaultSetting.WTAG+"/"+TAG, tmp);
+            Log.d(TAG, tmp);
             if(application_ctx!=null)
                 Toast.makeText(application_ctx, tmp, Toast.LENGTH_SHORT).show();
         }
 
         if(level.equalsIgnoreCase("I") && DefaultSetting.printLevelI) {
-            Log.d(DefaultSetting.WTAG+"/"+TAG, tmp);
+            Log.d(TAG, tmp);
             if(application_ctx!=null)
                 Toast.makeText(application_ctx, tmp, Toast.LENGTH_SHORT).show();
         }
